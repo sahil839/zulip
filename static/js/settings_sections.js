@@ -64,6 +64,10 @@ exports.load_settings_section = function (section) {
     loaded_groups.add(group);
 };
 
+exports.reset_users_section = function () {
+    loaded_groups.delete('org_users');
+};
+
 exports.reset_sections = function () {
     loaded_groups.clear();
     settings_emoji.reset();

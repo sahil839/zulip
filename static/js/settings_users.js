@@ -372,6 +372,7 @@ exports.on_load_success = function (realm_people_data) {
         const status = get_status_field();
         const url = '/json/users/' + encodeURIComponent(user_id);
         settings_ui.do_settings_change(channel.del, url, {}, status, opts);
+        settings_sections.reset_users_section();
 
     });
 
@@ -418,6 +419,7 @@ exports.on_load_success = function (realm_people_data) {
         };
 
         settings_ui.do_settings_change(channel.post, url, data, status, opts);
+        settings_sections.reset_users_section();
     });
 
     $('.admin_bot_table').on('click', '.user_row .view_user_profile', function (e) {
