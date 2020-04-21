@@ -5,10 +5,12 @@ const render_user_info_form_modal = require('../templates/user_info_form_modal.h
 
 const meta = {
     loaded: false,
+    click_handlers_registered: false,
 };
 
 exports.reset = function () {
     meta.loaded = false;
+    meta.click_handlers_registered = false;
 };
 
 function compare_a_b(a, b) {
@@ -332,11 +334,7 @@ function open_user_info_form_modal(person) {
     return user_info_form_modal;
 }
 
-exports.on_load_success = function (realm_people_data) {
-    meta.loaded = true;
-
-    populate_users(realm_people_data);
-
+exports.register_click_handlers = function () {
     const modal_elem = $("#deactivation_user_modal").expectOne();
 
     $(".admin_user_table").on("click", ".deactivate", function (e) {
@@ -503,6 +501,17 @@ exports.on_load_success = function (realm_people_data) {
         });
     });
 
+};
+
+exports.on_load_success = function (realm_people_data) {
+    meta.loaded = true;
+
+    populate_users(realm_people_data);
+
+    if (!meta.click_handlers_registered) {
+        exports.register_click_handlers();
+        meta.click_handlers_registered = true;
+    }
 };
 
 window.settings_users = exports;
