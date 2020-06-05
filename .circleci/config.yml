@@ -216,8 +216,8 @@ jobs:
           destination: casper
 
       - store_artifacts:
-          path: ./var/puppeteer/
-          destination: puppeteer
+          path: ../../../tmp/zulip-test-event-log/
+          destination: test-reports
 
       - store_test_results:
           path: ./var/xunit-test-results/casper/
@@ -321,7 +321,38 @@ jobs:
       - *save_cache_package_json
       - *notify_failure_status
 
-  "focal-production-install":
+  "puppeteer-stress-test":
+    docker:
+      # This is built from tools/circleci/images/bionic/Dockerfile .
+      # Bionic ships with Python 3.6.
+      - image: amanagr/circleci:bionic-python-2.test
+
+    working_directory: ~/zulip
+
+    steps:
+      - checkout
+      - *create_cache_directories
+      - *do_bionic_hack
+      - *restore_cache_package_json
+      - *restore_cache_requirements
+      - *restore_emoji_cache
+
+      - run:
+          name: Install dependencies
+          command: |
+            rm -f /home/circleci/.gitconfig
+            tools/provision 
+      
+      - run:
+          name: Puppeteer Stress Test
+          command: |
+            . /srv/zulip-py3-venv/bin/activate
+            tools/test-js-with-puppeteer
+      - store_artifacts:
+          path: ./var/puppeteer/
+          destination: puppeteer
+
+  "focal-production-install-python3.8":
     docker:
       # This is built from tools/ci/images/focal/Dockerfile.
       # Focal ships with Python 3.8.2.
@@ -355,19 +386,4 @@ workflows:
   version: 2
   "Ubuntu 16.04 Xenial (Python 3.5, legacy)":
     jobs:
-      - "xenial-legacy"
-  "Ubuntu 18.04 Bionic (Python 3.6, backend+frontend)":
-    jobs:
-      - "bionic-backend-frontend"
-  "Ubuntu 20.04 Focal (Python 3.8, backend)":
-    jobs:
-      - "focal-backend"
-  "Production":
-    jobs:
-      - "bionic-production-build"
-      - "bionic-production-install":
-          requires:
-            - "bionic-production-build"
-      - "focal-production-install":
-          requires:
-            - "bionic-production-build"
+      - puppeteer-stress-test

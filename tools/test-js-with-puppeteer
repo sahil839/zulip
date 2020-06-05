@@ -99,5 +99,7 @@ The Puppeteer frontend tests failed! Please report and ask for help in chat.zuli
 external_host = "zulipdev.com:9981"
 assert_provisioning_status_ok(options.force)
 prepare_puppeteer_run()
-run_tests(options.tests, external_host)
+for i in range(0,100):
+    print("testrun:", i)
+    run_tests(options.tests, external_host)
 sys.exit(0)
