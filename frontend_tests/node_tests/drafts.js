@@ -35,6 +35,10 @@ set_global("stream_data", {
     get_color() {
         return "#FFFFFF";
     },
+    get_sub(stream_name) {
+        assert.equal(stream_name, "stream");
+        return {stream_id: 30};
+    },
 });
 set_global("markdown", {
     apply_markdown: noop,
@@ -66,6 +70,7 @@ const compose_args_for_legacy_draft = {
 
 const draft_1 = {
     stream: "stream",
+    stream_id: 30,
     topic: "topic",
     type: "stream",
     content: "Test Stream Message",
@@ -303,6 +308,11 @@ run_test("format_drafts", (override) => {
         return stub_render_now(time, new XDate(1549958107000));
     };
 
+    stream_data.get_sub_by_id = function (stream_id) {
+        assert.equal(stream_id, 30);
+        return {name: "stream"};
+    };
+
     global.stub_templates((template_name, data) => {
         assert.equal(template_name, "draft_table_body");
         // Tests formatting and sorting of drafts
@@ -313,6 +323,18 @@ run_test("format_drafts", (override) => {
     override("drafts.open_overlay", noop);
     drafts.set_initial_element = noop;
     $("#drafts_table .draft-row").length = 0;
+
+    drafts.launch();
+
+    $.clear_all_elements();
+    $("#drafts_table").append = noop;
+
+    stream_data.get_sub_by_id = function (stream_id) {
+        assert.equal(stream_id, 30);
+        return {name: "stream-rename"};
+    };
+
+    expected[0].stream = "stream-rename";
 
     drafts.launch();
     timerender.render_now = stub_render_now;
