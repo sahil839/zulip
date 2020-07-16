@@ -46,6 +46,7 @@ const frontend = {
     stream_id: 1,
     is_muted: true,
     invite_only: false,
+    role: stream_data.sub_role_values.stream_admin.code,
 };
 
 stream_data.add_sub(frontend);
@@ -211,7 +212,12 @@ run_test("marked_subscribed", (override) => {
         override("blueslip.error", () => {
             errors += 1;
         });
-        stream_events.mark_subscribed(undefined, [], "yellow");
+        stream_events.mark_subscribed(
+            undefined,
+            [],
+            "yellow",
+            stream_data.sub_role_values.member.code,
+        );
         assert.equal(errors, 1);
     }
 
@@ -222,7 +228,12 @@ run_test("marked_subscribed", (override) => {
             completed = true; // This gets run if we continue and don't early return
         });
         const subscribed = {subscribed: true};
-        stream_events.mark_subscribed(subscribed, [], "yellow");
+        stream_events.mark_subscribed(
+            subscribed,
+            [],
+            "yellow",
+            stream_data.sub_role_values.member.code,
+        );
         assert.equal(completed, false);
 
         // prevent warning about spurious override
@@ -258,7 +269,12 @@ run_test("marked_subscribed", (override) => {
             list_updated = true;
         });
 
-        stream_events.mark_subscribed(frontend, [], "blue");
+        stream_events.mark_subscribed(
+            frontend,
+            [],
+            "blue",
+            stream_data.sub_role_values.stream_admin.code,
+        );
 
         args = message_util_stub.get_args("messages");
         assert.deepEqual(args.messages, ["msg"]);
@@ -270,6 +286,7 @@ run_test("marked_subscribed", (override) => {
         assert.equal(list_updated, true);
 
         assert.equal(frontend.color, "blue");
+        assert.equal(frontend.role, stream_data.sub_role_values.stream_admin.code);
     }
     narrow_state.reset_current_filter();
 
@@ -287,7 +304,12 @@ run_test("marked_subscribed", (override) => {
             override("message_util.do_unread_count_updates", noop);
             override("stream_list.add_sidebar_row", noop);
             override("subs.set_color", stub.f);
-            stream_events.mark_subscribed(frontend, [], undefined);
+            stream_events.mark_subscribed(
+                frontend,
+                [],
+                undefined,
+                stream_data.sub_role_values.member.code,
+            );
             const args = stub.get_args("id", "color");
             assert.equal(args.id, 1);
             assert.equal(args.color, "green");
@@ -305,7 +327,12 @@ run_test("marked_subscribed", (override) => {
         with_stub((stub) => {
             override("stream_data.set_subscribers", stub.f);
             const user_ids = [15, 20, 25];
-            stream_events.mark_subscribed(frontend, user_ids, "");
+            stream_events.mark_subscribed(
+                frontend,
+                user_ids,
+                "",
+                stream_data.sub_role_values.member.code,
+            );
             const args = stub.get_args("sub", "subscribers");
             assert.deepEqual(frontend, args.sub);
             assert.deepEqual(user_ids, args.subscribers);
@@ -314,7 +341,12 @@ run_test("marked_subscribed", (override) => {
         // assign self as well
         with_stub((stub) => {
             override("stream_data.subscribe_myself", stub.f);
-            stream_events.mark_subscribed(frontend, [], "");
+            stream_events.mark_subscribed(
+                frontend,
+                [],
+                "",
+                stream_data.sub_role_values.member.code,
+            );
             const args = stub.get_args("sub");
             assert.deepEqual(frontend, args.sub);
         });
@@ -322,7 +354,12 @@ run_test("marked_subscribed", (override) => {
         // and finally update subscriber settings
         with_stub((stub) => {
             override("subs.update_settings_for_subscribed", stub.f);
-            stream_events.mark_subscribed(frontend, [], "");
+            stream_events.mark_subscribed(
+                frontend,
+                [],
+                "",
+                stream_data.sub_role_values.member.code,
+            );
             const args = stub.get_args("sub");
             assert.deepEqual(frontend, args.sub);
         });
@@ -361,6 +398,20 @@ run_test("mark_unsubscribed", (override) => {
             stream_events.mark_unsubscribed(frontend);
             const args = stub.get_args("sub");
             assert.deepEqual(args.sub, frontend);
+        });
+    }
+
+    // Test role of stream admin is changed to user on unsubscribing.
+    frontend.role = stream_data.sub_role_values.stream_admin.code;
+    {
+        with_stub((stub) => {
+            override("stream_data.unsubscribe_myself", stub.f);
+            override("subs.update_settings_for_unsubscribed", noop);
+            override("stream_list.remove_sidebar_row", noop);
+            stream_events.mark_unsubscribed(frontend);
+            const args = stub.get_args("sub");
+            assert.deepEqual(args.sub, frontend);
+            assert.equal(frontend.role, stream_data.sub_role_values.member.code);
         });
     }
 

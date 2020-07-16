@@ -427,23 +427,43 @@ run_test("admin_options", () => {
     // non-admins can't do anything
     page_params.is_admin = false;
     let sub = make_sub();
+    sub.role = stream_data.sub_role_values.member.code;
     stream_data.update_calculated_fields(sub);
     assert(!sub.is_realm_admin);
+    assert(!sub.can_administer_stream);
     assert(!sub.can_change_stream_permissions);
 
     // just a sanity check that we leave "normal" fields alone
     assert.equal(sub.color, "blue");
 
-    // the remaining cases are for admin users
+    // stream admins can change stream name, description and permissions.
+    sub = make_sub();
+    sub.role = stream_data.sub_role_values.stream_admin.code;
+    stream_data.update_calculated_fields(sub);
+    assert(!sub.is_realm_admin);
+    assert(sub.can_administer_stream);
+    assert(sub.can_change_stream_permissions);
+
+    // stream admins are always subscribed and thus can make private
+    // streams public.
+    sub = make_sub();
+    sub.role = stream_data.sub_role_values.stream_admin.code;
+    sub.subscribed = true;
+    stream_data.update_calculated_fields(sub);
+    assert(!sub.is_realm_admin);
+    assert(sub.can_administer_stream);
+    assert(sub.can_change_stream_permissions);
+
+    // the remaining cases are for realm admin users
     page_params.is_admin = true;
 
-    // admins can make public streams become private
+    // realm admins can make public streams become private
     sub = make_sub();
     stream_data.update_calculated_fields(sub);
     assert(sub.is_realm_admin);
     assert(sub.can_change_stream_permissions);
 
-    // admins can only make private streams become public
+    // realm admins can only make private streams become public
     // if they are subscribed
     sub = make_sub();
     sub.invite_only = true;

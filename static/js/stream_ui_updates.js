@@ -95,6 +95,18 @@ exports.update_regular_sub_settings = function (sub) {
     }
 };
 
+exports.update_stream_properties_edit_elements = function (sub) {
+    if (!stream_edit.is_sub_settings_active(sub)) {
+        return;
+    }
+    const $settings = $(".subscription_settings[data-stream-id='" + sub.stream_id + "']");
+    if (sub.can_administer_stream) {
+        $settings.find(".stream-settings-header-controls").show();
+    } else {
+        $settings.find(".stream-settings-header-controls").hide();
+    }
+};
+
 exports.update_change_stream_privacy_settings = function (sub) {
     const stream_privacy_btn = $(".change-stream-privacy");
 

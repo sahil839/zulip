@@ -132,6 +132,17 @@ exports.stream_post_policy_values = {
     },
 };
 
+exports.sub_role_values = {
+    member: {
+        code: 50,
+        description: i18n.t("Member"),
+    },
+    stream_admin: {
+        code: 20,
+        description: i18n.t("Stream administrator"),
+    },
+};
+
 exports.clear_subscriptions = function () {
     stream_info = new BinaryDict((sub) => sub.subscribed);
     subs_by_stream_id = new Map();
@@ -508,9 +519,12 @@ exports.receives_notifications = function (stream_id, notification_name) {
 
 exports.update_calculated_fields = function (sub) {
     sub.is_realm_admin = page_params.is_admin;
+    sub.is_stream_admin = sub.role === exports.sub_role_values.stream_admin.code;
+    sub.can_administer_stream = page_params.is_admin || sub.is_stream_admin;
     // Admin can change any stream's name & description either stream is public or
     // private, subscribed or unsubscribed.
-    sub.can_change_name_description = page_params.is_admin;
+    sub.can_change_name_description = sub.can_administer_stream;
+    sub.can_delete_stream = sub.can_administer_stream;
     // If stream is public then any user can subscribe. If stream is private then only
     // subscribed users can unsubscribe.
     // Guest users can't subscribe themselves to any stream.
@@ -519,7 +533,7 @@ exports.update_calculated_fields = function (sub) {
     sub.should_display_preview_button =
         sub.subscribed || !sub.invite_only || sub.previously_subscribed;
     sub.can_change_stream_permissions =
-        page_params.is_admin && (!sub.invite_only || sub.subscribed);
+        sub.can_administer_stream && (!sub.invite_only || sub.subscribed);
     // User can add other users to stream if stream is public or user is subscribed to stream.
     // Guest users can't access subscribers of any(public or private) non-subscribed streams.
     sub.can_access_subscribers =
@@ -784,6 +798,7 @@ exports.create_sub_from_server_data = function (attrs) {
         render_subscribers: !page_params.realm_is_zephyr_mirror_realm || attrs.invite_only === true,
         subscribed: true,
         newly_subscribed: false,
+        role: exports.sub_role_values.member.code,
         is_muted: false,
         invite_only: false,
         desktop_notifications: page_params.enable_stream_desktop_notifications,
