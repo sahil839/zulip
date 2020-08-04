@@ -166,6 +166,18 @@ def fix_spoilers_in_text(content: str, language: str) -> str:
             output.append(line)
     return '\n'.join(output)
 
+def add_quote_prefix_in_text(content: str) -> str:
+    """
+    We add quote prefix ">" to each line of the message in plain text
+    format, such that email clients render the message as quote.
+    """
+    lines = content.split('\n')
+    output = []
+    for line in lines:
+        quoted_line = f"> {line}"
+        output.append(quoted_line)
+    return "\n".join(output)
+
 def build_message_list(user_profile: UserProfile, messages: List[Message]) -> List[Dict[str, Any]]:
     """
     Builds the message list object for the missed message email template.
@@ -187,7 +199,7 @@ def build_message_list(user_profile: UserProfile, messages: List[Message]) -> Li
         return re.sub(r"\[(\S*)\]\((\S*)\)", r"\2", content)
 
     def append_sender_to_message(message_plain: str, message_html: str, sender: str) -> Tuple[str, str]:
-        message_plain = f"{sender}: {message_plain}"
+        message_plain = f"{sender}:\n{message_plain}"
         message_soup = BeautifulSoup(message_html, "html.parser")
         sender_name_soup = BeautifulSoup(f"<b>{sender}</b>: ", "html.parser")
         first_tag = message_soup.find()
@@ -209,6 +221,7 @@ def build_message_list(user_profile: UserProfile, messages: List[Message]) -> Li
             r"/user_uploads/(\S*)",
             user_profile.realm.uri + r"/user_uploads/\1", plain)
         plain = fix_spoilers_in_text(plain, user_profile.default_language)
+        plain = add_quote_prefix_in_text(plain)
 
         assert message.rendered_content is not None
         html = message.rendered_content
