@@ -783,6 +783,25 @@ exports.initialize = function () {
                 .removeClass("text-success");
         }
 
+        function confirmation_for_private_stream(e) {
+            const stream_id = $(e.target).data("stream-id");
+            const sub = stream_data.get_sub_by_id(stream_id);
+
+            overlays.close_modal("#unsubscribe_private_stream_modal");
+            $("#unsubscribe_private_stream_modal").remove();
+            exports.remove_user_from_stream(target_user_id, sub, removal_success, removal_failure);
+        }
+
+        if (sub.invite_only && people.is_my_user_id(target_user_id)) {
+            subs.unsubscribe_from_private_stream(sub, true);
+            $("#subscriptions_table").on(
+                "click",
+                ".unsubscribe_from_subscriber_list",
+                confirmation_for_private_stream,
+            );
+            return;
+        }
+
         exports.remove_user_from_stream(target_user_id, sub, removal_success, removal_failure);
     });
 

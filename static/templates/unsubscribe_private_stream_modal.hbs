@@ -1,0 +1,14 @@
+<div id="unsubscribe_private_stream_modal" class="modal modal-bg hide fade new-style" tabindex="-1" role="dialog" aria-labelledby="unsubscribe_private_stream_modal_label" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close close-modal-btn" data-dismiss="modal" aria-label="{{t 'Close' }}"><span aria-hidden="true">&times;</span></button>
+        <h3 id="unsubscribe_private_stream_modal_label">{{t "Unsubscribe from" }} <span class="stream_name">{{stream_name}}</span></h3>
+    </div>
+    <div class="modal-body">
+        <p>{{t "Once you unsubscribe from this stream, you cannot access this stream and you must be added by a member of the stream to join it again." }} <strong>{{t "Are you sure you want to do this?" }}</strong></p>
+    </div>
+    <div class="modal-footer">
+        <button class="button rounded close-modal-btn" data-dismiss="modal">{{t "Cancel" }}</button>
+        <button class="button rounded btn-danger {{#if from_subscriber_list}}unsubscribe_from_subscriber_list{{else}}unsubscribe_private_stream{{/if}}" id="unsubscribe_private_stream_button" data-stream-id="{{stream_id}}">
+        {{t "Yes, unsubscribe from this stream." }}</button>
+    </div>
+</div>

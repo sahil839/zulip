@@ -6,6 +6,7 @@ const render_subscription = require("../templates/subscription.hbs");
 const render_subscription_settings = require("../templates/subscription_settings.hbs");
 const render_subscription_table_body = require("../templates/subscription_table_body.hbs");
 const render_subscriptions = require("../templates/subscriptions.hbs");
+const render_unsubscribe_private_stream_modal = require("../templates/unsubscribe_private_stream_modal.hbs");
 
 const people = require("./people");
 const util = require("./util");
@@ -914,8 +915,23 @@ exports.open_create_stream = function () {
     hashchange.update_browser_history("#streams/new");
 };
 
+exports.unsubscribe_from_private_stream = function (sub, from_subscriber_list) {
+    const unsubscribe_private_stream_modal = render_unsubscribe_private_stream_modal({
+        stream_name: sub.name,
+        stream_id: sub.stream_id,
+        from_subscriber_list,
+    });
+    $("#unsubscribe_private_stream_modal").remove();
+    $("#subscriptions_table").append(unsubscribe_private_stream_modal);
+    overlays.open_modal("#unsubscribe_private_stream_modal");
+};
+
 exports.sub_or_unsub = function (sub, stream_row) {
     if (sub.subscribed) {
+        if (sub.invite_only) {
+            exports.unsubscribe_from_private_stream(sub, false);
+            return;
+        }
         ajaxUnsubscribe(sub, stream_row);
     } else {
         ajaxSubscribe(sub.name, sub.color, stream_row);
@@ -950,6 +966,23 @@ exports.initialize = function () {
     $("#subscriptions_table").on("click", ".fa-chevron-left", () => {
         $(".right").removeClass("show");
         $(".subscriptions-header").removeClass("slide-left");
+    });
+
+    $("#subscriptions_table").on("click", ".unsubscribe_private_stream", (e) => {
+        const stream_id = $(e.target).data("stream-id");
+        const sub = stream_data.get_sub_by_id(stream_id);
+
+        overlays.close_modal("#unsubscribe_private_stream_modal");
+        $("#unsubscribe_private_stream_modal").remove();
+
+        let stream_row;
+        if (overlays.streams_open()) {
+            stream_row = $(
+                "#subscriptions_table div.stream-row[data-stream-id='" + stream_id + "']",
+            );
+        }
+
+        ajaxUnsubscribe(sub, stream_row);
     });
 
     (function defocus_sub_settings() {
