@@ -8,7 +8,7 @@
     </div>
     <div class="modal-footer">
         <button class="button rounded close-modal-btn" data-dismiss="modal">{{t "Cancel" }}</button>
-        <button class="button rounded btn-danger {{#if from_subscriber_list}}unsubscribe_from_subscriber_list{{else}}unsubscribe_private_stream{{/if}}" id="unsubscribe_private_stream_button" data-stream-id="{{stream_id}}">
+        <button class="button rounded btn-danger confirm-modal-btn {{#if from_subscriber_list}}unsubscribe_from_subscriber_list{{else}}unsubscribe_private_stream{{/if}}" id="unsubscribe_private_stream_button" data-stream-id="{{stream_id}}">
         {{t "Yes, unsubscribe from this stream." }}</button>
     </div>
 </div>

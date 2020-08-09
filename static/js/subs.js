@@ -985,6 +985,10 @@ exports.initialize = function () {
         ajaxUnsubscribe(sub, stream_row);
     });
 
+    $("#subscriptions_table").on("shown.bs.modal", () => {
+        $(".modal.in").find(".confirm-modal-btn").trigger("focus");
+    });
+
     (function defocus_sub_settings() {
         const sel = ".search-container, .streams-list, .subscriptions-header";
 
