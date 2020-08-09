@@ -559,7 +559,6 @@ function change_stream_privacy(e) {
         data,
         success() {
             overlays.close_modal("#stream_privacy_modal");
-            $("#stream_privacy_modal").remove();
             // The rest will be done by update stream event we will get.
         },
         error(xhr) {
@@ -711,17 +710,6 @@ exports.initialize = function () {
     $("#subscriptions_table").on("click", "#change-stream-privacy-button", change_stream_privacy);
 
     $("#subscriptions_table").on("click", ".close-modal-btn", (e) => {
-        // Re-enable background mouse events when we close the modal
-        // via the "x" in the corner.  (The other modal-close code
-        // paths call `overlays.close_modal`, rather than using
-        // bootstrap's data-dismiss=modal feature, and this is done
-        // there).
-        //
-        // TODO: It would probably be better to just do this
-        // unconditionally inside the handler for the event sent by
-        // bootstrap on closing a modal.
-        overlays.enable_background_mouse_events();
-
         // This fixes a weird bug in which, subscription_settings hides
         // unexpectedly by clicking the cancel button in a modal on top of it.
         e.stopPropagation();
@@ -788,7 +776,6 @@ exports.initialize = function () {
             const sub = stream_data.get_sub_by_id(stream_id);
 
             overlays.close_modal("#unsubscribe_private_stream_modal");
-            $("#unsubscribe_private_stream_modal").remove();
             exports.remove_user_from_stream(target_user_id, sub, removal_success, removal_failure);
         }
 
@@ -850,7 +837,6 @@ exports.initialize = function () {
     $("#subscriptions_table").on("click", "#do_deactivate_stream_button", (e) => {
         const stream_id = $(e.target).data("stream-id");
         overlays.close_modal("#deactivation_stream_modal");
-        $("#deactivation_stream_modal").remove();
         if (!stream_id) {
             ui_report.message(
                 i18n.t("Invalid stream id"),
