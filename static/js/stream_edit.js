@@ -863,10 +863,6 @@ exports.initialize = function () {
         exports.delete_stream(stream_id, $(".stream_change_property_info"), row);
     });
 
-    $("#subscriptions_table").on("hide.bs.modal", "#deactivation_stream_modal", () => {
-        $("#deactivation_stream_modal").remove();
-    });
-
     $("#subscriptions_table").on("click", ".stream-row", function (e) {
         if ($(e.target).closest(".check, .subscription_settings").length === 0) {
             exports.open_edit_panel_for_row(this);
