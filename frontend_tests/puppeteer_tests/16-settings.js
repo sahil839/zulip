@@ -57,7 +57,7 @@ async function test_change_password(page) {
     await page.click(change_password_button_selector);
 
     // On success the change password modal gets closed.
-    await page.waitForFunction(() => $("#change_password_modal").attr("aria-hidden") === "true");
+    await page.waitForSelector("#change_password_modal", {hidden: true});
 }
 
 async function test_get_api_key(page) {
@@ -80,6 +80,7 @@ async function test_get_api_key(page) {
     const zuliprc_decoded_url = await get_decoded_url_in_selector(page, download_zuliprc_selector);
     assert(zuliprc_regex.test(zuliprc_decoded_url), "Incorrect zuliprc file");
     await page.click("#api_key_modal .close");
+    await page.waitForSelector("#api_key_modal", {hidden: true});
 }
 
 async function test_webhook_bot_creation(page) {
