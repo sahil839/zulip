@@ -90,8 +90,6 @@ exports.update_regular_sub_settings = function (sub) {
         $settings.find(".regular_subscription_settings").addClass("in");
     } else {
         $settings.find(".regular_subscription_settings").removeClass("in");
-        // Clear email address widget
-        $settings.find(".email-address").html("");
     }
 };
 

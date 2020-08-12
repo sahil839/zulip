@@ -324,7 +324,6 @@ exports.update_settings_for_unsubscribed = function (sub) {
     stream_ui_updates.update_regular_sub_settings(sub);
     stream_ui_updates.update_change_stream_privacy_settings(sub);
 
-    stream_data.update_stream_email_address(sub, "");
     // If user unsubscribed from private stream then user cannot subscribe to
     // stream without invitation and cannot add subscribers to stream.
     if (!sub.should_display_subscription_button) {
