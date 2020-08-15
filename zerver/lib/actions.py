@@ -138,6 +138,7 @@ from zerver.lib.streams import (
     check_stream_name,
     create_stream_if_needed,
     get_default_value_for_history_public_to_subscribers,
+    get_stream_admin_dict_for_streams,
     render_stream_description,
     send_stream_creation_event,
     subscribed_to_stream,
@@ -3143,6 +3144,20 @@ def bulk_remove_subscriptions(users: Iterable[UserProfile],
         for sub_info in sub_infos:
             subs_to_deactivate.append(sub_info)
             sub_ids_to_deactivate.append(sub_info.sub.id)
+
+    stream_ids = [stream_id for stream_id in stream_dict.keys()]
+    stream_admin_dict = get_stream_admin_dict_for_streams(stream_ids)
+    stream_admin_count_dict: Dict[int, int] = {}
+    for stream_id in stream_admin_dict.keys():
+        stream_admin_count_dict[stream_id] = len(stream_admin_dict[stream_id])
+
+    for sub in subs_to_deactivate:
+        user_profile_id = sub.user.id
+        stream_id = sub.stream.id
+        if user_profile_id in stream_admin_dict[stream_id]:
+            if stream_admin_count_dict[stream_id] == 1:
+                raise JsonableError(_("Cannot remove all stream administrators."))
+            stream_admin_count_dict[stream_id] -= 1
 
     our_realm = users[0].realm
 

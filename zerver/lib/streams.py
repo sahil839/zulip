@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.db.models.query import QuerySet
@@ -588,3 +588,21 @@ def get_stream_by_narrow_operand_access_unchecked(operand: Union[str, int], real
     if isinstance(operand, str):
         return get_stream(operand, realm)
     return get_stream_by_id_in_realm(operand, realm)
+
+def get_stream_admin_dict_for_streams(stream_ids: List[int]) -> Dict[int, List[int]]:
+    result: Dict[int, List[int]] = {
+        stream_id: [] for stream_id in stream_ids
+    }
+
+    subs = Subscription.objects.filter(
+        recipient__type=Recipient.STREAM,
+        recipient__type_id__in=stream_ids,
+        active=True,
+        role=Subscription.ROLE_STREAM_ADMINISTRATOR,
+    ).select_related('recipient', 'user_profile')
+
+    for sub in subs:
+        stream_id = sub.recipient.type_id
+        user_profile_id = sub.user_profile_id
+        result[stream_id].append(user_profile_id)
+    return result

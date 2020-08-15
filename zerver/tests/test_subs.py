@@ -1389,7 +1389,7 @@ class StreamAdminTest(ZulipTestCase):
         those you aren't on.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=16,
+            query_count=17,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=True,
@@ -1416,7 +1416,7 @@ class StreamAdminTest(ZulipTestCase):
             for name in ['cordelia', 'prospero', 'iago', 'hamlet', 'ZOE']
         ]
         result = self.attempt_unsubscribe_of_principal(
-            query_count=31,
+            query_count=32,
             cache_count=9,
             target_users=target_users,
             is_realm_admin=True,
@@ -1434,7 +1434,7 @@ class StreamAdminTest(ZulipTestCase):
         are on.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=17,
+            query_count=18,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=True,
@@ -1451,7 +1451,7 @@ class StreamAdminTest(ZulipTestCase):
         streams you aren't on.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=17,
+            query_count=18,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=False,
@@ -1468,7 +1468,7 @@ class StreamAdminTest(ZulipTestCase):
         You can remove others from public streams you're a stream administrator of.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=16,
+            query_count=17,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=False,
             is_stream_admin=True,
@@ -1486,10 +1486,10 @@ class StreamAdminTest(ZulipTestCase):
         """
         target_users = [
             self.example_user(name)
-            for name in ['cordelia', 'prospero', 'othello', 'hamlet', 'ZOE']
+            for name in ['cordelia', 'prospero', 'othello', 'ZOE', 'aaron']
         ]
         result = self.attempt_unsubscribe_of_principal(
-            query_count=31,
+            query_count=33,
             cache_count=9,
             target_users=target_users,
             is_realm_admin=False,
@@ -1507,7 +1507,7 @@ class StreamAdminTest(ZulipTestCase):
         You can remove others from private streams you're a stream administrator of.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=17,
+            query_count=18,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=False,
             is_stream_admin=True,
@@ -1529,7 +1529,7 @@ class StreamAdminTest(ZulipTestCase):
 
     def test_admin_remove_others_from_stream_legacy_emails(self) -> None:
         result = self.attempt_unsubscribe_of_principal(
-            query_count=16,
+            query_count=17,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=True,
@@ -1543,7 +1543,7 @@ class StreamAdminTest(ZulipTestCase):
 
     def test_admin_remove_multiple_users_from_stream_legacy_emails(self) -> None:
         result = self.attempt_unsubscribe_of_principal(
-            query_count=20,
+            query_count=21,
             target_users=[self.example_user('cordelia'), self.example_user('prospero')],
             is_realm_admin=True,
             is_subbed=True,
@@ -1686,7 +1686,7 @@ class StreamAdminTest(ZulipTestCase):
         fails gracefully.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=10,
+            query_count=11,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=False,
@@ -1715,6 +1715,27 @@ class StreamAdminTest(ZulipTestCase):
             result,
             "User not authorized to execute queries on behalf of '99'",
             status_code=403)
+
+    def test_cant_remove_last_stream_admin(self) -> None:
+        """
+        Last stream administrator cannot be unsubscribed from the stream
+        """
+        hamlet = self.example_user("hamlet")
+        cordelia = self.example_user("cordelia")
+        self.login_user(hamlet)
+
+        stream_name = "test_stream"
+        stream = self.make_stream(stream_name)
+        self.subscribe(hamlet, stream_name)
+        self.subscribe(cordelia, stream_name)
+
+        sub = get_subscription(stream_name, hamlet)
+        do_change_subscription_property(hamlet, sub, stream, "role", Subscription.ROLE_STREAM_ADMINISTRATOR)
+
+        result = self.client_delete("/json/users/me/subscriptions",
+                                    {"subscriptions": orjson.dumps([stream_name]).decode(),
+                                     "principals": orjson.dumps([hamlet.id]).decode()})
+        self.assert_json_error(result, "Cannot remove all stream administrators.")
 
 class DefaultStreamTest(ZulipTestCase):
     def get_default_stream_names(self, realm: Realm) -> Set[str]:
@@ -3275,7 +3296,7 @@ class SubscriptionAPITest(ZulipTestCase):
                         get_client("website"),
                     )
 
-        self.assert_length(query_count, 28)
+        self.assert_length(query_count, 29)
         self.assert_length(cache_count, 4)
 
         peer_events = [e for e in events
