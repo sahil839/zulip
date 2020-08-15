@@ -529,6 +529,10 @@ class StreamAdminTest(ZulipTestCase):
             user_profile=user_profile,
         ).exists()
         self.assertFalse(subscription_exists)
+        sub = Subscription.objects.get(recipient__type=Recipient.STREAM,
+                                       recipient__type_id=stream.id,
+                                       user_profile=user_profile)
+        self.assertEqual(sub.role, Subscription.ROLE_MEMBER)
 
     def test_deactivate_stream_removes_default_stream(self) -> None:
         stream = self.make_stream('new_stream')
@@ -1389,7 +1393,7 @@ class StreamAdminTest(ZulipTestCase):
         those you aren't on.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=17,
+            query_count=18,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=True,
@@ -1416,7 +1420,7 @@ class StreamAdminTest(ZulipTestCase):
             for name in ['cordelia', 'prospero', 'iago', 'hamlet', 'ZOE']
         ]
         result = self.attempt_unsubscribe_of_principal(
-            query_count=32,
+            query_count=33,
             cache_count=9,
             target_users=target_users,
             is_realm_admin=True,
@@ -1434,7 +1438,7 @@ class StreamAdminTest(ZulipTestCase):
         are on.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=18,
+            query_count=19,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=True,
@@ -1451,7 +1455,7 @@ class StreamAdminTest(ZulipTestCase):
         streams you aren't on.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=18,
+            query_count=19,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=False,
@@ -1468,7 +1472,7 @@ class StreamAdminTest(ZulipTestCase):
         You can remove others from public streams you're a stream administrator of.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=17,
+            query_count=18,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=False,
             is_stream_admin=True,
@@ -1489,7 +1493,7 @@ class StreamAdminTest(ZulipTestCase):
             for name in ['cordelia', 'prospero', 'othello', 'ZOE', 'aaron']
         ]
         result = self.attempt_unsubscribe_of_principal(
-            query_count=33,
+            query_count=34,
             cache_count=9,
             target_users=target_users,
             is_realm_admin=False,
@@ -1507,7 +1511,7 @@ class StreamAdminTest(ZulipTestCase):
         You can remove others from private streams you're a stream administrator of.
         """
         result = self.attempt_unsubscribe_of_principal(
-            query_count=18,
+            query_count=19,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=False,
             is_stream_admin=True,
@@ -1529,7 +1533,7 @@ class StreamAdminTest(ZulipTestCase):
 
     def test_admin_remove_others_from_stream_legacy_emails(self) -> None:
         result = self.attempt_unsubscribe_of_principal(
-            query_count=17,
+            query_count=18,
             target_users=[self.example_user('cordelia')],
             is_realm_admin=True,
             is_subbed=True,
@@ -1543,7 +1547,7 @@ class StreamAdminTest(ZulipTestCase):
 
     def test_admin_remove_multiple_users_from_stream_legacy_emails(self) -> None:
         result = self.attempt_unsubscribe_of_principal(
-            query_count=21,
+            query_count=22,
             target_users=[self.example_user('cordelia'), self.example_user('prospero')],
             is_realm_admin=True,
             is_subbed=True,
@@ -1696,6 +1700,32 @@ class StreamAdminTest(ZulipTestCase):
         json = self.assert_json_success(result)
         self.assertEqual(len(json["removed"]), 0)
         self.assertEqual(len(json["not_removed"]), 1)
+
+    def test_unsubscribing_stream_admin_changes_role_to_member(self) -> None:
+        hamlet = self.example_user('hamlet')
+        cordelia = self.example_user('cordelia')
+        self.login_user(hamlet)
+
+        stream_name = 'test_stream'
+        stream = self.make_stream(stream_name)
+        self.subscribe(hamlet, stream_name)
+        self.subscribe(cordelia, stream_name)
+
+        sub = get_subscription(stream_name, hamlet)
+        do_change_subscription_property(hamlet, sub, stream, "role", Subscription.ROLE_STREAM_ADMINISTRATOR)
+        sub = get_subscription(stream_name, cordelia)
+        do_change_subscription_property(cordelia, sub, stream, "role", Subscription.ROLE_STREAM_ADMINISTRATOR)
+
+        result = self.client_delete("/json/users/me/subscriptions",
+                                    {"subscriptions": orjson.dumps([stream_name]).decode(),
+                                     "principals": orjson.dumps([hamlet.id]).decode()})
+        self.assert_json_success(result)
+        sub = Subscription.objects.get(recipient__type=Recipient.STREAM,
+                                       recipient__type_id=stream.id,
+                                       user_profile=hamlet
+                                       )
+        self.assertFalse(sub.active)
+        self.assertEqual(sub.role, Subscription.ROLE_MEMBER)
 
     def test_remove_invalid_user(self) -> None:
         """
@@ -3296,7 +3326,7 @@ class SubscriptionAPITest(ZulipTestCase):
                         get_client("website"),
                     )
 
-        self.assert_length(query_count, 29)
+        self.assert_length(query_count, 30)
         self.assert_length(cache_count, 4)
 
         peer_events = [e for e in events

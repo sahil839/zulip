@@ -724,7 +724,11 @@ def apply_event(state: Dict[str, Any],
         elif event['op'] == 'update':
             for sub in state['subscriptions']:
                 if sub['name'].lower() == event['name'].lower():
-                    sub[event['property']] = event['value']
+                    if event['property'] == 'role':
+                        if user_profile.email == event['email']:
+                            sub['role'] = event['value']
+                    else:
+                        sub[event['property']] = event['value']
         elif event['op'] == 'peer_add':
             stream_ids = set(event["stream_ids"])
             user_ids = set(event["user_ids"])
