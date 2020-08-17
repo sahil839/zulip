@@ -3313,6 +3313,30 @@ def do_change_subscription_property(user_profile: UserProfile, sub: Subscription
                  name=stream.name)
     send_event(user_profile.realm, event, [user_profile.id])
 
+def do_change_subscription_role(user_profile: UserProfile, sub: Subscription,
+                                stream: Stream, value: int,
+                                acting_user: Optional[UserProfile]=None) -> None:
+    old_value = getattr(sub, "role")
+    setattr(sub, "role", value)
+    sub.save(update_fields=["role"])
+
+    event_time = timezone_now()
+    RealmAuditLog.objects.create(
+        realm=user_profile.realm, event_type=RealmAuditLog.SUBSCRIPTION_ROLE_CHANGED,
+        event_time=event_time, modified_user=user_profile, acting_user=acting_user,
+        modified_stream=stream, extra_data=orjson.dumps({
+            RealmAuditLog.OLD_VALUE: old_value,
+            RealmAuditLog.NEW_VALUE: value,
+        }).decode())
+    event = dict(type="subscription",
+                 op="update",
+                 email=user_profile.email,
+                 property="role",
+                 value=value,
+                 stream_id=stream.id,
+                 name=stream.name)
+    send_event(user_profile.realm, event, can_access_stream_user_ids(stream))
+
 def do_change_password(user_profile: UserProfile, password: str, commit: bool=True) -> None:
     user_profile.set_password(password)
     if commit:

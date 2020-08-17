@@ -1234,11 +1234,15 @@ _check_subscription_update = make_checker(subscription_update_event)
 
 
 def check_subscription_update(
-    var_name: str, event: Dict[str, object], property: str, value: bool
+    var_name: str, event: Dict[str, object], property: str, value: Union[bool, int]
 ) -> None:
     _check_subscription_update(var_name, event)
     assert event["property"] == property
     assert event["value"] == value
+
+    if property == "role":
+        assert isinstance(value, int)
+        assert value in Subscription.ROLE_TYPES
 
 
 typing_person_type = DictType(
