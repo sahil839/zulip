@@ -10,6 +10,11 @@ below features are supported.
 
 ## Changes in Zulip 4.0
 
+**Feature level 37**
+
+* [`PATCH users/{user_id}/subscriptions/{stream_id}`](/api/update-subscription-role):
+  New endpoint added for updating role of user within the stream.
+
 **Feature level 36**
 
 * [`POST /users`](/api/create-user): Restricted access to organization
