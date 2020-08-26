@@ -53,11 +53,13 @@ from zerver.models import (
     Message,
     Realm,
     Stream,
+    Subscription,
     UserMessage,
     UserProfile,
     custom_profile_fields_for_realm,
     get_default_stream_groups,
     get_realm_domains,
+    get_user,
     realm_filters_for_realm,
 )
 from zerver.tornado.django_api import get_user_events, request_event_queue
@@ -597,6 +599,7 @@ def apply_event(state: Dict[str, Any],
                     stream_data = copy.deepcopy(stream)
                     if include_subscribers:
                         stream_data['subscribers'] = []
+                        stream_data['stream_admins'] = []
 
                     # We know the stream has no traffic, and this
                     # field is not present in the event.
@@ -685,6 +688,7 @@ def apply_event(state: Dict[str, Any],
                 for i, sub in enumerate(event['subscriptions']):
                     event['subscriptions'][i] = copy.deepcopy(event['subscriptions'][i])
                     del event['subscriptions'][i]['subscribers']
+                    del event['subscriptions'][i]['stream_admins']
 
         def name(sub: Dict[str, Any]) -> str:
             return sub['name'].lower()
@@ -729,6 +733,14 @@ def apply_event(state: Dict[str, Any],
                             sub['role'] = event['value']
                     else:
                         sub[event['property']] = event['value']
+            if event['property'] == 'role' and include_subscribers:
+                user_id = get_user(event['email'], user_profile.realm).id
+                for sub in state['subscriptions'] + state['unsubscribed'] + state['never_subscribed']:
+                    if sub['name'].lower() == event['name'].lower():
+                        if event['value'] == Subscription.ROLE_STREAM_ADMINISTRATOR:
+                            sub['stream_admins'].append(user_id)
+                        elif user_id in sub['stream_admins']:
+                            sub['stream_admins'].remove(user_id)
         elif event['op'] == 'peer_add':
             stream_ids = set(event["stream_ids"])
             user_ids = set(event["user_ids"])

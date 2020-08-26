@@ -3155,7 +3155,7 @@ class SubscriptionAPITest(ZulipTestCase):
                     streams_to_sub,
                     dict(principals=orjson.dumps([user1.id, user2.id]).decode()),
                 )
-        self.assert_length(queries, 35)
+        self.assert_length(queries, 36)
 
         self.assert_length(events, 5)
         for ev in [x for x in events if x['event']['type'] not in ('message', 'stream')]:
@@ -3182,7 +3182,7 @@ class SubscriptionAPITest(ZulipTestCase):
                     streams_to_sub,
                     dict(principals=orjson.dumps([self.test_user.id]).decode()),
                 )
-        self.assert_length(queries, 12)
+        self.assert_length(queries, 13)
 
         self.assert_length(events, 2)
         add_event, add_peer_event = events
@@ -3566,7 +3566,7 @@ class SubscriptionAPITest(ZulipTestCase):
 
         # The only known O(N) behavior here is that we call
         # principal_to_user_profile for each of our users.
-        self.assert_length(queries, 19)
+        self.assert_length(queries, 20)
         self.assert_length(cache_tries, 4)
 
     def test_subscriptions_add_for_principal(self) -> None:
@@ -3988,7 +3988,7 @@ class SubscriptionAPITest(ZulipTestCase):
                 [new_streams[0]],
                 dict(principals=orjson.dumps([user1.id, user2.id]).decode()),
             )
-        self.assert_length(queries, 35)
+        self.assert_length(queries, 36)
 
         # Test creating private stream.
         with queries_captured() as queries:
@@ -3998,7 +3998,7 @@ class SubscriptionAPITest(ZulipTestCase):
                 dict(principals=orjson.dumps([user1.id, user2.id]).decode()),
                 invite_only=True,
             )
-        self.assert_length(queries, 37)
+        self.assert_length(queries, 38)
 
         # Test creating a public stream with announce when realm has a notification stream.
         notifications_stream = get_stream(self.streams[0], self.test_realm)
@@ -4013,7 +4013,7 @@ class SubscriptionAPITest(ZulipTestCase):
                     principals=orjson.dumps([user1.id, user2.id]).decode(),
                 ),
             )
-        self.assert_length(queries, 43)
+        self.assert_length(queries, 44)
 
 class GetStreamsTest(ZulipTestCase):
     def test_streams_api_for_bot_owners(self) -> None:
@@ -4405,7 +4405,7 @@ class GetSubscribersTest(ZulipTestCase):
             if not sub["name"].startswith("stream_"):
                 continue
             self.assertTrue(len(sub["subscribers"]) == len(users_to_subscribe))
-        self.assert_length(queries, 5)
+        self.assert_length(queries, 6)
 
     def test_never_subscribed_streams(self) -> None:
         """
@@ -4475,7 +4475,7 @@ class GetSubscribersTest(ZulipTestCase):
             with queries_captured() as queries:
                 sub_data = gather_subscriptions_helper(self.user_profile)
             never_subscribed = sub_data[2]
-            self.assert_length(queries, 4)
+            self.assert_length(queries, 5)
 
             # Ignore old streams.
             never_subscribed = [
@@ -4634,7 +4634,7 @@ class GetSubscribersTest(ZulipTestCase):
                 self.assertTrue(len(sub["subscribers"]) == len(users_to_subscribe))
             else:
                 self.assertTrue(len(sub["subscribers"]) == 0)
-        self.assert_length(queries, 5)
+        self.assert_length(queries, 6)
 
     def test_nonsubscriber(self) -> None:
         """

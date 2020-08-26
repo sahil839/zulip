@@ -1154,6 +1154,7 @@ single_subscription_type = DictType(
     optional_keys=[
         # force vertical
         ("subscribers", ListType(int)),
+        ("stream_admins", ListType(int))
     ],
 )
 
@@ -1176,8 +1177,10 @@ def check_subscription_add(
     for sub in event["subscriptions"]:
         if include_subscribers:
             assert "subscribers" in sub.keys()
+            assert "stream_admins" in sub.keys()
         else:
             assert "subscribers" not in sub.keys()
+            assert "stream_admins" not in sub.keys()
 
 
 subscription_peer_add_event = event_dict_type(

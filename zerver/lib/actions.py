@@ -2772,6 +2772,7 @@ def send_subscription_add_events(
     realm: Realm,
     sub_info_list: List[SubInfo],
     subscriber_dict: Dict[int, Set[int]],
+    stream_admin_dict: Dict[int, List[int]],
 ) -> None:
     info_by_user: Dict[int, List[SubInfo]] = defaultdict(list)
     for sub_info in sub_info_list:
@@ -2795,8 +2796,10 @@ def send_subscription_add_events(
                 stream.id, stream.date_created, recent_traffic)
             if stream.is_in_zephyr_realm and not stream.invite_only:
                 sub_dict['subscribers'] = []
+                sub_dict['stream_admins'] = []
             else:
                 sub_dict['subscribers'] = list(subscriber_dict[stream.id])
+                sub_dict['stream_admins'] = stream_admin_dict[stream.id]
             sub_dicts.append(sub_dict)
 
         # Send a notification to the user who subscribed.
@@ -2883,6 +2886,8 @@ def bulk_add_subscriptions(
         subs_to_activate=subs_to_activate,
     )
 
+    stream_admin_user_id_map = get_stream_admin_dict_for_streams([stream.id for stream in streams])
+
     altered_user_dict: Dict[int, Set[int]] = defaultdict(set)
     for sub_info in subs_to_add + subs_to_activate:
         altered_user_dict[sub_info.stream.id].add(sub_info.user.id)
@@ -2914,6 +2919,7 @@ def bulk_add_subscriptions(
             realm=realm,
             sub_info_list=subs_to_add + subs_to_activate,
             subscriber_dict=subscriber_peer_info.subscribed_ids,
+            stream_admin_dict=stream_admin_user_id_map,
         )
 
     send_peer_subscriber_events(
@@ -5082,6 +5088,7 @@ def build_stream_dict_for_sub(
     sub: Subscription,
     stream: Stream,
     subscribers: Optional[List[int]],
+    stream_admins: Optional[List[int]],
     recent_traffic: Dict[int, int],
 ) -> Dict[str, object]:
     # We first construct a dictionary based on the standard Stream
@@ -5117,23 +5124,28 @@ def build_stream_dict_for_sub(
     result["email_address"] = encode_email_address_helper(
         stream["name"], stream["email_token"], show_sender=True)
 
-    # Important: don't show the subscribers if the stream is invite only
-    # and this user isn't on it anymore (or a realm administrator).
+    # Important: don't show the subscribers and stream admins if the stream is
+    # invite only and this user isn't on it anymore (or a realm administrator).
     if stream["invite_only"] and not (sub["active"] or user.is_realm_admin):
         subscribers = None
+        stream_admins = None
 
-    # Guest users lose access to subscribers when they are unsubscribed if the stream
-    # is not web-public.
+    # Guest users lose access to subscribers and stream admins when they are
+    # unsubscribed if the stream is not web-public.
     if not sub["active"] and user.is_guest and not stream["is_web_public"]:
         subscribers = None
+        stream_admins = None
     if subscribers is not None:
         result["subscribers"] = subscribers
+    if stream_admins is not None:
+        result["stream_admins"] = stream_admins
 
     return result
 
 def build_stream_dict_for_never_sub(
     stream: Stream,
     subscribers: Optional[List[int]],
+    stream_admins: Optional[List[int]],
     recent_traffic: Dict[int, int],
 ) -> Dict[str, object]:
     result = {}
@@ -5154,6 +5166,9 @@ def build_stream_dict_for_never_sub(
 
     if subscribers is not None:
         result["subscribers"] = subscribers
+
+    if stream_admins is not None:
+        result["stream_admins"] = stream_admins
 
     return result
 
@@ -5205,10 +5220,13 @@ def gather_subscriptions_helper(user_profile: UserProfile,
             user_profile,
             subscribed_stream_ids,
         )
+        stream_admin_map: Mapping[int, Optional[List[int]]] = get_stream_admin_dict_for_streams(
+            list(all_streams_map.keys()))
     else:
         # If we're not including subscribers, always return None,
         # which the below code needs to check for anyway.
         subscriber_map = defaultdict(lambda: None)
+        stream_admin_map = defaultdict(lambda: None)
 
     # Okay, now we finally get to populating our main results, which
     # will be these three lists.
@@ -5227,6 +5245,7 @@ def gather_subscriptions_helper(user_profile: UserProfile,
             sub=sub,
             stream=stream,
             subscribers=subscriber_map[stream_id],
+            stream_admins=stream_admin_map[stream_id],
             recent_traffic=recent_traffic,
         )
 
@@ -5254,6 +5273,7 @@ def gather_subscriptions_helper(user_profile: UserProfile,
             stream_dict = build_stream_dict_for_never_sub(
                 stream=stream,
                 subscribers=subscriber_map[stream["id"]],
+                stream_admins=stream_admin_map[stream["id"]],
                 recent_traffic=recent_traffic
             )
 

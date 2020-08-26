@@ -10,6 +10,15 @@ below features are supported.
 
 ## Changes in Zulip 4.0
 
+**Feature level 38**
+
+* [`GET users/me/subscriptions`](/api/get-subscriptions): Added `stream_admins`
+  field to Subscription objects representing the list of user ids of stream
+  admins of the stream.
+
+* [`GET /events`](/api/get-events): Added `stream_admins` field to Subscription
+  objects sent in `subscriptions` events.
+
 **Feature level 37**
 
 * [`PATCH users/{user_id}/subscriptions/{stream_id}`](/api/update-subscription-role):
