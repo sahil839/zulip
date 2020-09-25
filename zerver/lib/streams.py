@@ -172,6 +172,7 @@ def subscribed_to_stream(user_profile: UserProfile, stream_id: int) -> bool:
 
 def access_stream_for_send_message(sender: UserProfile,
                                    stream: Stream,
+                                   sub: Optional[Subscription],
                                    forwarder_user_profile: Optional[UserProfile]) -> None:
     # Our caller is responsible for making sure that `stream` actually
     # matches the realm of the sender.
@@ -181,6 +182,11 @@ def access_stream_for_send_message(sender: UserProfile,
         pass
     elif sender.is_bot and (sender.bot_owner is not None and
                             sender.bot_owner.is_realm_admin):
+        pass
+    # Stream admins can send to the stream, irrespective of stream_post_policy value.
+    # This also includes the case of bots, where if owner of the bot is stream admin,
+    # bot can send to the stream irrespective of stream_post_policy value.
+    elif sub is not None and sub.is_stream_admin:
         pass
     elif stream.stream_post_policy == Stream.STREAM_POST_POLICY_ADMINS:
         raise JsonableError(_("Only organization administrators can send to this stream."))

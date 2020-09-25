@@ -586,7 +586,7 @@ function validate_stream_message_announce(sub) {
 }
 
 function validate_stream_message_post_policy(sub) {
-    if (page_params.is_admin) {
+    if (page_params.is_admin || sub.is_stream_admin) {
         return true;
     }
 

@@ -2382,10 +2382,27 @@ def check_message(sender: UserProfile, client: Client, addressee: Addressee,
             type=Recipient.STREAM,
         )
 
+        sub = None
+        sub_user = None
+        if not sender.is_bot:
+            sub_user = sender
+        elif sender.bot_owner is not None:
+            sub_user = sender.bot_owner
+
+        if sub_user is not None:
+            try:
+                sub = Subscription.objects.get(user_profile=sub_user, recipient=recipient,
+                                               active=True)
+            except Subscription.DoesNotExist:
+                sub = None
+
+        # This will raise JsonableError if there are problems.
+
         if sender.bot_type != sender.OUTGOING_WEBHOOK_BOT:
             access_stream_for_send_message(
                 sender=sender,
                 stream=stream,
+                sub=sub,
                 forwarder_user_profile=forwarder_user_profile)
 
     elif addressee.is_private():

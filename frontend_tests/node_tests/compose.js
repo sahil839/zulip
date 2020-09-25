@@ -21,6 +21,9 @@ set_global("DOMParser", new JSDOM().window.DOMParser);
 set_global("compose_actions", {
     update_placeholder_text: noop,
 });
+set_global("hash_util", {
+    by_stream_uri: noop,
+});
 
 const {LazySet} = zrequire("lazy_set");
 
@@ -436,10 +439,13 @@ run_test("test_validate_stream_message_post_policy_admin_only", () => {
         name: "stream102",
         subscribed: true,
         stream_post_policy: stream_data.stream_post_policy_values.admins.code,
+        role: stream_data.sub_role_values.member.code,
     };
+    stream_data.get_subscriber_count = noop;
 
     compose_state.topic("subject102");
     compose_state.stream_name("stream102");
+    compose_state.message_content("Hello everyone!!");
     stream_data.add_sub(sub);
     assert(!compose.validate());
     assert.equal(
@@ -460,6 +466,17 @@ run_test("test_validate_stream_message_post_policy_admin_only", () => {
         $("#compose-error-msg").html(),
         i18n.t("Only organization admins are allowed to post to this stream."),
     );
+
+    page_params.is_admin = true;
+    page_params.is_guest = false;
+    assert(compose.validate());
+
+    page_params.is_admin = false;
+    sub.role = stream_data.sub_role_values.stream_admin.code;
+    stream_data.update_calculated_fields(sub);
+    assert(compose.validate());
+    // reset compose_state.stream_name to 'social' again so that any tests occurung after this
+    compose_state.stream_name("social");
 });
 
 run_test("test_validate_stream_message_post_policy_full_members_only", () => {
