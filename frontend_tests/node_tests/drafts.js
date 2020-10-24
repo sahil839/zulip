@@ -254,7 +254,7 @@ run_test("format_drafts", (override) => {
         {
             draft_id: "id1",
             is_stream: true,
-            stream: "stream",
+            stream_name: "stream",
             stream_color: "#FFFFFF",
             dark_background: "",
             topic: "topic",
@@ -285,7 +285,7 @@ run_test("format_drafts", (override) => {
         {
             draft_id: "id3",
             is_stream: true,
-            stream: "stream 2",
+            stream_name: "stream 2",
             stream_color: "#FFFFFF",
             dark_background: "",
             topic: "topic",
@@ -334,7 +334,7 @@ run_test("format_drafts", (override) => {
         return {name: "stream-rename"};
     };
 
-    expected[0].stream = "stream-rename";
+    expected[0].stream_name = "stream-rename";
 
     drafts.launch();
     timerender.render_now = stub_render_now;
