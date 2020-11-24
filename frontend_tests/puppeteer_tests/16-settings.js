@@ -45,6 +45,8 @@ async function test_change_full_name(page) {
     await page.type(full_name_input_selector, "New name");
     await page.click(change_full_name_button_selector);
     await page.waitForFunction(() => $("#change_full_name").text().trim() === "New name");
+    // Ensure that the mouse events are enabled for the background for further tests.
+    await page.waitForFunction(() => $(".overlay.show").attr("style") === undefined);
 }
 
 async function test_change_password(page) {
@@ -60,6 +62,8 @@ async function test_change_password(page) {
 
     // On success the change password modal gets closed.
     await page.waitForFunction(() => $("#change_password_modal").attr("aria-hidden") === "true");
+    // Ensure that the mouse events are enabled for the background for further tests.
+    await page.waitForFunction(() => $(".overlay.show").attr("style") === undefined);
 }
 
 async function test_get_api_key(page) {
@@ -83,6 +87,8 @@ async function test_get_api_key(page) {
     const zuliprc_decoded_url = await get_decoded_url_in_selector(page, download_zuliprc_selector);
     assert(zuliprc_regex.test(zuliprc_decoded_url), "Incorrect zuliprc file");
     await page.click("#api_key_modal .close");
+    // Ensure that the mouse events are enabled for the background for further tests.
+    await page.waitForFunction(() => $(".overlay.show").attr("style") === undefined);
 }
 
 async function test_webhook_bot_creation(page) {
@@ -165,6 +171,8 @@ async function test_edit_bot_form(page) {
         bot1_name_selector,
     );
     assert.strictEqual(await common.get_text_from_selector(page, bot1_name_selector), "Bot one");
+    // Ensure that the mouse events are enabled for the background for further tests.
+    await page.waitForFunction(() => $(".overlay.show").attr("style") === undefined);
 }
 
 async function test_your_bots_section(page) {
