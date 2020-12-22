@@ -453,7 +453,7 @@ class ImportExportTest(ZulipTestCase):
 
         # We set up 4 alert words for Hamlet, Cordelia, etc.
         # when we populate the test database.
-        num_zulip_users = 9
+        num_zulip_users = 10
         self.assertEqual(len(exported_alert_words), num_zulip_users * 4)
 
         self.assertIn(
