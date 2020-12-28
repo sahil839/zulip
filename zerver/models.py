@@ -1258,6 +1258,10 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
             self.role = UserProfile.ROLE_MEMBER
 
     @property
+    def is_moderator(self) -> bool:
+        return self.role == UserProfile.ROLE_MODERATOR
+
+    @property
     def is_incoming_webhook(self) -> bool:
         return self.bot_type == UserProfile.INCOMING_WEBHOOK_BOT
 
@@ -1307,7 +1311,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
         if policy_value == Realm.POLICY_MEMBERS_ONLY:
             return True
-        return not self.is_new_member
+        return not self.is_new_member or self.is_moderator
 
     def can_create_streams(self) -> bool:
         return self.has_permission('create_stream_policy')

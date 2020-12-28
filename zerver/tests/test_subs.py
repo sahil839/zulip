@@ -2858,6 +2858,10 @@ class SubscriptionAPITest(ZulipTestCase):
         othello.date_joined = timezone_now() - timedelta(days=(othello.realm.waiting_period_threshold - 1))
         self.assertFalse(othello.can_create_streams())
 
+        othello.role = UserProfile.ROLE_MODERATOR
+        self.assertTrue(othello.can_create_streams())
+
+        othello.role = UserProfile.ROLE_MEMBER
         othello.date_joined = timezone_now() - timedelta(days=(othello.realm.waiting_period_threshold + 1))
         self.assertTrue(othello.can_create_streams())
 
@@ -2925,6 +2929,10 @@ class SubscriptionAPITest(ZulipTestCase):
         othello.date_joined = timezone_now() - timedelta(days=(othello.realm.waiting_period_threshold - 1))
         self.assertFalse(othello.can_subscribe_other_users())
 
+        do_change_user_role(othello, UserProfile.ROLE_MODERATOR)
+        self.assertTrue(othello.can_subscribe_other_users())
+
+        do_change_user_role(othello, UserProfile.ROLE_MEMBER)
         othello.date_joined = timezone_now() - timedelta(days=(othello.realm.waiting_period_threshold + 1))
         self.assertTrue(othello.can_subscribe_other_users())
 

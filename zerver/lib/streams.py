@@ -188,9 +188,9 @@ def access_stream_for_send_message(sender: UserProfile,
         raise JsonableError(_("Guests cannot send to this stream."))
     elif stream.stream_post_policy == Stream.STREAM_POST_POLICY_RESTRICT_NEW_MEMBERS:
         if sender.is_bot and (sender.bot_owner is not None and
-                              sender.bot_owner.is_new_member):
+                              sender.bot_owner.is_new_member and not sender.bot_owner.is_moderator):
             raise JsonableError(_("New members cannot send to this stream."))
-        elif sender.is_new_member:
+        elif sender.is_new_member and not sender.is_moderator:
             raise JsonableError(_("New members cannot send to this stream."))
 
     if stream.is_web_public:
