@@ -279,7 +279,7 @@ function test_submit_settings_form(override, submit_form) {
 
     expected_value = {
         default_language: "en",
-        default_twenty_four_hour_time: "true",
+        twenty_four_hour_time: "true",
     };
     assert.deepEqual(data, expected_value);
 
@@ -689,6 +689,7 @@ test("set_up", ({override, mock_template}) => {
     // TEST set_up() here, but this mostly just allows us to
     // get access to the click handlers.
     override(settings_org, "maybe_disable_widgets", noop);
+    page_params.realm_defaults = {};
     settings_org.set_up();
 
     verify_realm_domains();

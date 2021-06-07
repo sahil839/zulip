@@ -925,7 +925,6 @@ def check_realm_default_update(
     _check_realm_default_update(var_name, event)
 
     assert prop == event["property"]
-    assert prop not in ["default_language", "twenty_four_hour_time"]
     assert (
         prop in RealmUserDefault.property_types
         or prop in RealmUserDefault.notification_setting_types

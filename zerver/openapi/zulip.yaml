@@ -9985,19 +9985,6 @@ paths:
 
                           **Changes**: New in Zulip 4.0 (feature level 33). Moderators option added in
                           Zulip 4.0 (feature level 62).
-                      realm_default_language:
-                        type: string
-                        description: |
-                          Present if `realm` is present in `fetch_event_types`.
-
-                          The default UI language for new users joining this organization.
-                      realm_default_twenty_four_hour_time:
-                        type: boolean
-                        description: |
-                          Present if `realm` is present in `fetch_event_types`.
-
-                          Whether new members of this organization will see times displayed in
-                          24-hour time (true) or 12-hour time (false).
                       realm_description:
                         type: string
                         description: |

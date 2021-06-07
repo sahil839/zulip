@@ -368,8 +368,11 @@ run_test("realm settings", ({override}) => {
     event = event_fixtures.realm__update__disallow_disposable_email_addresses;
     test_realm_boolean(event, "realm_disallow_disposable_email_addresses");
 
-    event = event_fixtures.realm__update__default_twenty_four_hour_time;
-    test_realm_boolean(event, "realm_default_twenty_four_hour_time");
+    event = event_fixtures.realm_default__update__twenty_four_hour_time;
+    page_params.realm_defaults = {};
+    page_params.realm_defaults.twenty_four_hour_time = true;
+    dispatch(event);
+    assert_same(page_params.realm_defaults.twenty_four_hour_time, false);
 
     event = event_fixtures.realm__update__email_addresses_visibility;
     dispatch(event);

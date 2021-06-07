@@ -423,10 +423,11 @@ class RealmTest(ZulipTestCase):
         # raised and the invalid language is not saved in db
         invalid_lang = "invalid_lang"
         req = dict(default_language=invalid_lang)
-        result = self.client_patch("/json/realm", req)
+        result = self.client_patch("/json/realm_default", req)
         self.assert_json_error(result, f"Invalid language '{invalid_lang}'")
         realm = get_realm("zulip")
-        self.assertNotEqual(realm.default_language, invalid_lang)
+        realm_user_default = RealmUserDefault.objects.get(realm=realm)
+        self.assertNotEqual(realm_user_default.default_language, invalid_lang)
 
     def test_deactivate_realm_by_owner(self) -> None:
         self.login("desdemona")
@@ -755,7 +756,6 @@ class RealmAPITest(ZulipTestCase):
 
         bool_tests: List[bool] = [False, True]
         test_values: Dict[str, Any] = dict(
-            default_language=["de", "en"],
             default_code_block_language=["javascript", ""],
             description=["Realm description", "New description"],
             digest_weekday=[0, 1, 2],
@@ -827,6 +827,7 @@ class RealmAPITest(ZulipTestCase):
             demote_inactive_streams=UserProfile.DEMOTE_STREAMS_CHOICES,
             desktop_icon_count_display=[1, 2, 3],
             notification_sound=["zulip", "ding"],
+            default_language=["de", "en"],
         )
 
         vals = test_values.get(name)
@@ -856,8 +857,6 @@ class RealmAPITest(ZulipTestCase):
 
     def test_update_default_realm_settings(self) -> None:
         for prop in RealmUserDefault.property_types:
-            if prop in ["default_language", "twenty_four_hour_time"]:
-                continue
             self.do_test_realm_default_setting_update_api(prop)
 
         for prop in RealmUserDefault.notification_setting_types:

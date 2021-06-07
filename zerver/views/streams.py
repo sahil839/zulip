@@ -88,6 +88,7 @@ from zerver.lib.validator import (
 )
 from zerver.models import (
     Realm,
+    RealmUserDefault,
     Stream,
     UserMessage,
     UserProfile,
@@ -620,11 +621,11 @@ def send_messages_for_new_subscribers(
                     content=msg,
                 )
             )
-
+    realm_user_default = RealmUserDefault.objects.get(realm=user_profile.realm)
     if announce and len(created_streams) > 0:
         notifications_stream = user_profile.realm.get_notifications_stream()
         if notifications_stream is not None:
-            with override_language(notifications_stream.realm.default_language):
+            with override_language(realm_user_default.default_language):
                 if len(created_streams) > 1:
                     content = _("{user_name} created the following streams: {stream_str}.")
                 else:
@@ -650,7 +651,7 @@ def send_messages_for_new_subscribers(
     if not user_profile.realm.is_zephyr_mirror_realm and len(created_streams) > 0:
         sender = get_system_bot(settings.NOTIFICATION_BOT, user_profile.realm_id)
         for stream in created_streams:
-            with override_language(stream.realm.default_language):
+            with override_language(realm_user_default.default_language):
                 notifications.append(
                     internal_prep_stream_message(
                         sender=sender,

@@ -31,7 +31,7 @@ from zerver.lib.logging_util import log_to_file
 from zerver.lib.send_email import FromAddress, send_email_to_billing_admins_and_realm_owners
 from zerver.lib.timestamp import datetime_to_timestamp, timestamp_to_datetime
 from zerver.lib.utils import assert_is_not_none
-from zerver.models import Realm, RealmAuditLog, UserProfile, get_system_bot
+from zerver.models import Realm, RealmAuditLog, RealmUserDefault, UserProfile, get_system_bot
 from zproject.config import get_secret
 
 STRIPE_PUBLISHABLE_KEY = get_secret("stripe_publishable_key")
@@ -1036,12 +1036,15 @@ def downgrade_small_realms_behind_on_payments_as_needed() -> None:
                 "upgrade_url": f"{realm.uri}{reverse('initial_upgrade')}",
                 "realm": realm,
             }
+            realm_user_default = RealmUserDefault.objects.get(realm=realm)
             send_email_to_billing_admins_and_realm_owners(
                 "zerver/emails/realm_auto_downgraded",
                 realm,
-                from_name=FromAddress.security_email_from_name(language=realm.default_language),
+                from_name=FromAddress.security_email_from_name(
+                    language=realm_user_default.default_language
+                ),
                 from_address=FromAddress.tokenized_no_reply_address(),
-                language=realm.default_language,
+                language=realm_user_default.default_language,
                 context=context,
             )
         else:

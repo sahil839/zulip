@@ -772,7 +772,7 @@ class QueryCountTest(ZulipTestCase):
                         acting_user=None,
                     )
 
-        self.assert_length(queries, 84)
+        self.assert_length(queries, 85)
         self.assert_length(cache_tries, 27)
 
         peer_add_events = [event for event in events if event["event"].get("op") == "peer_add"]
@@ -1217,6 +1217,7 @@ class UserProfileTest(ZulipTestCase):
         realm_user_default.enable_offline_email_notifications = False
         realm_user_default.enable_stream_push_notifications = True
         realm_user_default.enter_sends = True
+        realm_user_default.default_language = "de"
         realm_user_default.save()
 
         # Check that we didn't send an realm_user update events to
@@ -1233,6 +1234,7 @@ class UserProfileTest(ZulipTestCase):
         self.assertEqual(cordelia.enable_offline_email_notifications, False)
         self.assertEqual(cordelia.enable_stream_push_notifications, True)
         self.assertEqual(cordelia.enter_sends, True)
+        self.assertEqual(cordelia.default_language, "de")
 
     def test_get_user_by_id_in_realm_including_cross_realm(self) -> None:
         realm = get_realm("zulip")

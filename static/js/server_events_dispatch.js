@@ -188,8 +188,6 @@ export function dispatch_normal_event(event) {
                 create_stream_policy: noop,
                 invite_to_stream_policy: noop,
                 default_code_block_language: noop,
-                default_language: noop,
-                default_twenty_four_hour_time: noop,
                 description: noop,
                 digest_emails_enabled: noop,
                 digest_weekday: noop,
@@ -323,6 +321,13 @@ export function dispatch_normal_event(event) {
                     break;
             }
             break;
+
+        case "realm_default": {
+            page_params.realm_defaults[event.property] = event.value;
+            settings_org.sync_realm_settings(event.property);
+            break;
+        }
+
         case "realm_emoji":
             // The authoritative data source is here.
             emoji.update_emojis(event.realm_emoji);

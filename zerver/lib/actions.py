@@ -359,8 +359,8 @@ def send_message_to_signup_notification_stream(
     signup_notifications_stream = realm.get_signup_notifications_stream()
     if signup_notifications_stream is None:
         return
-
-    with override_language(realm.default_language):
+    realm_user_default = RealmUserDefault.objects.get(realm=realm)
+    with override_language(realm_user_default.default_language):
         internal_send_stream_message(sender, signup_notifications_stream, topic_name, message)
 
 
@@ -4907,7 +4907,8 @@ def do_rename_stream(stream: Stream, new_name: str, user_profile: UserProfile) -
         )
         send_event(stream.realm, event, can_access_stream_user_ids(stream))
     sender = get_system_bot(settings.NOTIFICATION_BOT, stream.realm_id)
-    with override_language(stream.realm.default_language):
+    realm_user_default = RealmUserDefault.objects.get(realm=stream.realm)
+    with override_language(realm_user_default.default_language):
         internal_send_stream_message(
             sender,
             stream,
@@ -5862,7 +5863,8 @@ def maybe_send_resolve_topic_notifications(
 
     sender = get_system_bot(settings.NOTIFICATION_BOT, user_profile.realm_id)
     user_mention = f"@_**{user_profile.full_name}|{user_profile.id}**"
-    with override_language(stream.realm.default_language):
+    realm_user_default = RealmUserDefault.objects.get(realm=stream.realm)
+    with override_language(realm_user_default.default_language):
         internal_send_stream_message(
             sender,
             stream,
@@ -5893,9 +5895,9 @@ def send_message_moved_breadcrumbs(
     user_mention = f"@_**{user_profile.full_name}|{user_profile.id}**"
     old_topic_link = f"#**{old_stream.name}>{old_topic}**"
     new_topic_link = f"#**{new_stream.name}>{new_topic}**"
-
+    realm_user_default = RealmUserDefault.objects.get(realm=user_profile.realm)
     if new_thread_notification_string is not None:
-        with override_language(new_stream.realm.default_language):
+        with override_language(realm_user_default.default_language):
             internal_send_stream_message(
                 sender,
                 new_stream,
@@ -5907,7 +5909,7 @@ def send_message_moved_breadcrumbs(
             )
 
     if old_thread_notification_string is not None:
-        with override_language(old_stream.realm.default_language):
+        with override_language(realm_user_default.default_language):
             # Send a notification to the old stream that the topic was moved.
             internal_send_stream_message(
                 sender,
@@ -7011,7 +7013,7 @@ def do_invite_users(
         timezone_now(),
         increment=len(validated_emails),
     )
-
+    realm_user_default = RealmUserDefault.objects.get(realm=user_profile.realm)
     # Now that we are past all the possible errors, we actually create
     # the PreregistrationUser objects and trigger the email invitations.
     for email in validated_emails:
@@ -7026,7 +7028,7 @@ def do_invite_users(
         event = {
             "prereg_id": prereg_user.id,
             "referrer_id": user_profile.id,
-            "email_language": user_profile.realm.default_language,
+            "email_language": realm_user_default.default_language,
         }
         queue_json_publish("invites", event)
 
@@ -7146,11 +7148,12 @@ def do_resend_user_invite_email(prereg_user: PreregistrationUser) -> int:
     )
 
     clear_scheduled_invitation_emails(prereg_user.email)
+    realm_user_default = RealmUserDefault.objects.get(realm=prereg_user.referred_by.realm)
     # We don't store the custom email body, so just set it to None
     event = {
         "prereg_id": prereg_user.id,
         "referrer_id": prereg_user.referred_by.id,
-        "email_language": prereg_user.referred_by.realm.default_language,
+        "email_language": realm_user_default.default_language,
     }
     queue_json_publish("invites", event)
 
@@ -7966,7 +7969,8 @@ def do_send_realm_reactivation_email(realm: Realm, *, acting_user: Optional[User
         event_time=timezone_now(),
     )
     context = {"confirmation_url": url, "realm_uri": realm.uri, "realm_name": realm.name}
-    language = realm.default_language
+    realm_user_default = RealmUserDefault.objects.get(realm=realm)
+    language = realm_user_default.default_language
     send_email_to_admins(
         "zerver/emails/realm_reactivation",
         realm,

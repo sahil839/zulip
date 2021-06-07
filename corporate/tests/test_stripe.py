@@ -95,6 +95,7 @@ from zerver.models import (
     Message,
     Realm,
     RealmAuditLog,
+    RealmUserDefault,
     Recipient,
     UserProfile,
     get_realm,
@@ -2811,6 +2812,7 @@ class StripeTest(StripeTestCase):
         ) -> Tuple[Realm, Optional[Customer], Optional[CustomerPlan], List[stripe.Invoice]]:
             realm_string_id = "realm_" + str(random.randrange(1, 1000000))
             realm = Realm.objects.create(string_id=realm_string_id)
+            RealmUserDefault.objects.create(realm=realm)
             users = []
             for i in range(users_to_create):
                 user = UserProfile.objects.create(

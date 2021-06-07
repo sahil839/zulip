@@ -253,13 +253,6 @@ exports.fixtures = {
         value: "javascript",
     },
 
-    realm__update__default_twenty_four_hour_time: {
-        type: "realm",
-        op: "update",
-        property: "default_twenty_four_hour_time",
-        value: false,
-    },
-
     realm__update__disallow_disposable_email_addresses: {
         type: "realm",
         op: "update",
@@ -409,6 +402,13 @@ exports.fixtures = {
             user_id: 4321,
             full_name: "The Bot Has A New Name",
         },
+    },
+
+    realm_default__update__twenty_four_hour_time: {
+        type: "realm_default",
+        op: "update",
+        property: "twenty_four_hour_time",
+        value: false,
     },
 
     realm_domains__add: {

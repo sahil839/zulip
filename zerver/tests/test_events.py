@@ -2092,7 +2092,6 @@ class RealmPropertyActionTest(BaseAction):
     def do_set_realm_property_test(self, name: str) -> None:
         bool_tests: List[bool] = [True, False, True]
         test_values: Dict[str, Any] = dict(
-            default_language=["es", "de", "en"],
             description=["Realm description", "New description"],
             digest_weekday=[0, 1, 2],
             message_retention_days=[10, 20],
@@ -2179,6 +2178,7 @@ class RealmPropertyActionTest(BaseAction):
             demote_inactive_streams=UserProfile.DEMOTE_STREAMS_CHOICES,
             desktop_icon_count_display=[1, 2, 3],
             notification_sound=["zulip", "ding"],
+            default_language=["es", "de", "en"],
         )
 
         vals = test_values.get(name)
@@ -2238,8 +2238,6 @@ class RealmPropertyActionTest(BaseAction):
 
     def test_change_realm_user_default_setting(self) -> None:
         for prop in RealmUserDefault.property_types:
-            if prop in ["default_language", "twenty_four_hour_time"]:
-                continue
             self.do_set_realm_user_default_setting_test(prop)
 
         for prop in RealmUserDefault.notification_setting_types:

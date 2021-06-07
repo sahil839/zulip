@@ -45,6 +45,7 @@ from zerver.lib.actions import (
     do_get_user_invites,
     do_invite_users,
     do_set_realm_property,
+    do_set_realm_user_default_setting,
     get_default_streams_for_realm,
 )
 from zerver.lib.email_notifications import enqueue_welcome_emails, followup_day2_email_delay
@@ -90,6 +91,7 @@ from zerver.models import (
     PreregistrationUser,
     Realm,
     RealmAuditLog,
+    RealmUserDefault,
     Recipient,
     ScheduledEmail,
     Stream,
@@ -774,7 +776,7 @@ class LoginTest(ZulipTestCase):
         with queries_captured() as queries, cache_tries_captured() as cache_tries:
             self.register(self.nonreg_email("test"), "test")
         # Ensure the number of queries we make is not O(streams)
-        self.assert_length(queries, 89)
+        self.assert_length(queries, 90)
 
         # We can probably avoid a couple cache hits here, but there doesn't
         # seem to be any O(N) behavior.  Some of the cache hits are related
@@ -1065,7 +1067,7 @@ class InviteUserTest(InviteUserBase):
         #       the large number of queries), so I just
         #       use an approximate equality check.
         actual_count = len(queries)
-        expected_count = 251
+        expected_count = 253
         if abs(actual_count - expected_count) > 1:
             raise AssertionError(
                 f"""
@@ -3374,7 +3376,10 @@ class UserSignUpTest(InviteUserBase):
         password = "newpassword"
         timezone = "US/Mountain"
         realm = get_realm("zulip")
-        do_set_realm_property(realm, "default_language", "de", acting_user=None)
+        realm_user_default = RealmUserDefault.objects.get(realm=realm)
+        do_set_realm_user_default_setting(
+            realm_user_default, "default_language", "de", acting_user=None
+        )
 
         result = self.client_post("/accounts/home/", {"email": email})
         self.assertEqual(result.status_code, 302)
@@ -3392,7 +3397,8 @@ class UserSignUpTest(InviteUserBase):
         self.assertEqual(result.status_code, 302)
 
         user_profile = self.nonreg_user("newguy")
-        self.assertEqual(user_profile.default_language, realm.default_language)
+        realm_user_default = RealmUserDefault.objects.get(realm=realm)
+        self.assertEqual(user_profile.default_language, realm_user_default.default_language)
         self.assertEqual(user_profile.timezone, timezone)
         from django.core.mail import outbox
 
@@ -3406,7 +3412,10 @@ class UserSignUpTest(InviteUserBase):
         email = self.nonreg_email("newguy")
         password = "newpassword"
         realm = get_realm("zulip")
-        do_set_realm_property(realm, "default_twenty_four_hour_time", True, acting_user=None)
+        realm_user_default = RealmUserDefault.objects.get(realm=realm)
+        do_set_realm_user_default_setting(
+            realm_user_default, "twenty_four_hour_time", True, acting_user=None
+        )
 
         result = self.client_post("/accounts/home/", {"email": email})
         self.assertEqual(result.status_code, 302)
@@ -3423,7 +3432,10 @@ class UserSignUpTest(InviteUserBase):
         self.assertEqual(result.status_code, 302)
 
         user_profile = self.nonreg_user("newguy")
-        self.assertEqual(user_profile.twenty_four_hour_time, realm.default_twenty_four_hour_time)
+        realm_user_default = RealmUserDefault.objects.get(realm=realm)
+        self.assertEqual(
+            user_profile.twenty_four_hour_time, realm_user_default.twenty_four_hour_time
+        )
 
     def test_signup_already_active(self) -> None:
         """

@@ -30,10 +30,6 @@ def copy_default_settings(
     #
     # Note that this function will do at least one save() on target_profile.
     for settings_name in UserBaseSettings.property_types:
-        if settings_name in ["default_language", "twenty_four_hour_time"] and isinstance(
-            settings_source, RealmUserDefault
-        ):
-            continue
         value = getattr(settings_source, settings_name)
         setattr(target_profile, settings_name, value)
 
@@ -116,8 +112,6 @@ def create_user_profile(
         tutorial_status=tutorial_status,
         enter_sends=enter_sends,
         onboarding_steps=orjson.dumps([]).decode(),
-        default_language=realm.default_language,
-        twenty_four_hour_time=realm.default_twenty_four_hour_time,
         delivery_email=email,
         **extra_kwargs,
     )

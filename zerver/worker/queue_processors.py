@@ -94,6 +94,7 @@ from zerver.models import (
     PreregistrationUser,
     Realm,
     RealmAuditLog,
+    RealmUserDefault,
     ScheduledMessageNotificationEmail,
     UserMessage,
     UserProfile,
@@ -445,7 +446,8 @@ class ConfirmationEmailWorker(QueueProcessingWorker):
         if "email_language" in data:
             email_language = data["email_language"]
         else:
-            email_language = referrer.realm.default_language
+            realm_user_default = RealmUserDefault.objects.get(realm=referrer.realm)
+            email_language = realm_user_default.default_language
         activate_url = do_send_confirmation_email(invitee, referrer, email_language)
 
         # queue invitation reminder

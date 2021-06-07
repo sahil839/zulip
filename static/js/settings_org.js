@@ -180,7 +180,11 @@ function get_property_value(property_name) {
     }
 
     if (property_name === "realm_default_twenty_four_hour_time") {
-        return JSON.stringify(page_params[property_name]);
+        return JSON.stringify(page_params.realm_defaults.twenty_four_hour_time);
+    }
+
+    if (property_name === "realm_default_language") {
+        return page_params.realm_defaults.default_language;
     }
 
     return page_params[property_name];
@@ -727,8 +731,12 @@ export function build_page() {
         const save_btn_container = subsection_parent.find(".save-button-controls");
         const failed_alert_elem = subsection_parent.find(".subsection-failed-status p");
         change_save_button_state(save_btn_container, "saving");
+        let url = "/json/realm";
+        if (subsection_parent.attr("id") === "org-user-defaults") {
+            url = "/json/realm_default";
+        }
         channel.patch({
-            url: "/json/realm",
+            url,
             data,
             success() {
                 failed_alert_elem.hide();
@@ -865,7 +873,7 @@ export function build_page() {
                 const realm_default_twenty_four_hour_time = $(
                     "#id_realm_default_twenty_four_hour_time",
                 ).val();
-                data.default_twenty_four_hour_time = realm_default_twenty_four_hour_time;
+                data.twenty_four_hour_time = realm_default_twenty_four_hour_time;
                 break;
             }
         }

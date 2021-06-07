@@ -147,14 +147,14 @@ export function build_page() {
     $("#id_realm_bot_creation_policy").val(page_params.realm_bot_creation_policy);
     $("#id_realm_email_address_visibility").val(page_params.realm_email_address_visibility);
 
-    $("#id_realm_default_language").val(page_params.realm_default_language);
+    $("#id_realm_default_language").val(page_params.realm_defaults.default_language);
     $("#id_realm_digest_weekday").val(options.realm_digest_weekday);
 
     // default_twenty_four_hour time is a boolean in the API but a
     // dropdown, so we need to convert the value to a string for
     // storage in the browser's DOM.
     $("#id_realm_default_twenty_four_hour_time").val(
-        JSON.stringify(page_params.realm_default_twenty_four_hour_time),
+        JSON.stringify(page_params.realm_defaults.twenty_four_hour_time),
     );
 }
 

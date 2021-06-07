@@ -11,7 +11,7 @@ from django.utils import translation
 from zerver.lib.email_notifications import enqueue_welcome_emails
 from zerver.lib.test_classes import ZulipTestCase
 from zerver.management.commands import makemessages
-from zerver.models import get_realm_stream
+from zerver.models import RealmUserDefault, get_realm_stream
 
 
 class EmailTranslationTestCase(ZulipTestCase):
@@ -31,10 +31,10 @@ class EmailTranslationTestCase(ZulipTestCase):
         hamlet = self.example_user("hamlet")
         hamlet.default_language = "de"
         hamlet.save()
-        realm = hamlet.realm
-        realm.default_language = "de"
-        realm.save()
-        stream = get_realm_stream("Denmark", realm.id)
+        realm_user_default = RealmUserDefault.objects.get(realm=hamlet.realm)
+        realm_user_default.default_language = "de"
+        realm_user_default.save()
+        stream = get_realm_stream("Denmark", hamlet.realm.id)
         self.login_user(hamlet)
 
         # TODO: Uncomment and replace with translation once we have German translations for the strings

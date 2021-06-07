@@ -79,7 +79,6 @@ def update_realm(
         converter=to_non_negative_int, default=None
     ),
     allow_edit_history: Optional[bool] = REQ(json_validator=check_bool, default=None),
-    default_language: Optional[str] = REQ(default=None),
     waiting_period_threshold: Optional[int] = REQ(converter=to_non_negative_int, default=None),
     authentication_methods: Optional[Dict[str, Any]] = REQ(
         json_validator=check_dict([]), default=None
@@ -118,7 +117,6 @@ def update_realm(
     email_address_visibility: Optional[int] = REQ(
         json_validator=check_int_in(Realm.EMAIL_ADDRESS_VISIBILITY_TYPES), default=None
     ),
-    default_twenty_four_hour_time: Optional[bool] = REQ(json_validator=check_bool, default=None),
     video_chat_provider: Optional[int] = REQ(json_validator=check_int, default=None),
     giphy_rating: Optional[int] = REQ(json_validator=check_int, default=None),
     default_code_block_language: Optional[str] = REQ(default=None),
@@ -130,8 +128,6 @@ def update_realm(
 
     # Additional validation/error checking beyond types go here, so
     # the entire request can succeed or fail atomically.
-    if default_language is not None and default_language not in get_available_language_codes():
-        raise JsonableError(_("Invalid language '{}'").format(default_language))
     if authentication_methods is not None:
         if not user_profile.is_realm_owner:
             raise OrganizationOwnerRequired()
@@ -339,6 +335,8 @@ def update_realm_default(
     realm_name_in_notifications: Optional[bool] = REQ(json_validator=check_bool, default=None),
     presence_enabled: Optional[bool] = REQ(json_validator=check_bool, default=None),
     enter_sends: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    default_language: Optional[str] = REQ(default=None),
+    twenty_four_hour_time: Optional[bool] = REQ(json_validator=check_bool, default=None),
 ) -> HttpResponse:
     if (
         notification_sound is not None
@@ -346,6 +344,9 @@ def update_realm_default(
         and notification_sound != "none"
     ):
         raise JsonableError(_("Invalid notification sound '{}'").format(notification_sound))
+
+    if default_language is not None and default_language not in get_available_language_codes():
+        raise JsonableError(_("Invalid language '{}'").format(default_language))
 
     realm_user_default = RealmUserDefault.objects.get(realm=user_profile.realm)
     request_settings = {
