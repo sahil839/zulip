@@ -1020,7 +1020,7 @@ class FetchQueriesTest(ZulipTestCase):
             muted_topics=1,
             muted_users=1,
             presence=1,
-            realm=0,
+            realm=1,
             realm_bot=1,
             realm_domains=1,
             realm_embedded_bots=0,

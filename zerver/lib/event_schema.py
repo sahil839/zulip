@@ -45,7 +45,7 @@ from zerver.lib.data_types import (
     make_checker,
 )
 from zerver.lib.topic import ORIG_TOPIC, TOPIC_LINKS, TOPIC_NAME
-from zerver.models import Realm, Stream, Subscription, UserProfile
+from zerver.models import Realm, RealmUserDefault, Stream, Subscription, UserProfile
 
 # These fields are used for "stream" events, and are included in the
 # larger "subscription" events that also contain personal settings.
@@ -904,6 +904,38 @@ def check_realm_update(
         assert isinstance(value, str)
     else:
         raise AssertionError(f"Unexpected property type {property_type}")
+
+
+realm_default_update_event = event_dict_type(
+    required_keys=[
+        ("type", Equals("realm_default")),
+        ("op", Equals("update")),
+        ("property", str),
+        ("value", value_type),
+    ],
+)
+_check_realm_default_update = make_checker(realm_default_update_event)
+
+
+def check_realm_default_update(
+    var_name: str,
+    event: Dict[str, object],
+    prop: str,
+) -> None:
+    _check_realm_default_update(var_name, event)
+
+    assert prop == event["property"]
+    assert prop not in ["default_language", "twenty_four_hour_time"]
+    assert (
+        prop in RealmUserDefault.property_types
+        or prop in RealmUserDefault.notification_setting_types
+    )
+
+    if prop in RealmUserDefault.property_types:
+        prop_type = RealmUserDefault.property_types[prop]
+    else:
+        prop_type = RealmUserDefault.notification_setting_types[prop]
+    assert isinstance(event["value"], prop_type)
 
 
 authentication_dict = DictType(

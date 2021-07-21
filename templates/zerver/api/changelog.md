@@ -11,6 +11,15 @@ below features are supported.
 
 ## Changes in Zulip 5.0
 
+**Feature level 90**
+
+* [`GET /events`](/api/get-events): Introduced new event type `realm_default`
+  which will be sent for changes in the realm-level default of user
+  settings.
+
+* [`POST /register`](/api/register-queue): Added `realm_user_settings_defaults`
+  field containing the realm-level default values of user-settings.
+
 **Feature level 89**
 
 * [`GET /events`](/api/get-events): Introduced the `user_settings`
