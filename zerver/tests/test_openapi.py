@@ -256,6 +256,7 @@ class OpenAPIArgumentsTest(ZulipTestCase):
         "/zcommand",
         #### These "organization settings" endpoint have modest value to document:
         "/realm",
+        "/realm_default",
         "/realm/domains",
         "/realm/domains/{domain}",
         "/bots",

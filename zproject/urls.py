@@ -103,6 +103,7 @@ from zerver.views.realm import (
     deactivate_realm,
     realm_reactivation,
     update_realm,
+    update_realm_default,
 )
 from zerver.views.realm_domains import (
     create_realm_domain,
@@ -243,6 +244,7 @@ if settings.TWO_FACTOR_AUTHENTICATION_ENABLED:
 v1_api_and_json_patterns = [
     # realm-level calls
     rest_path("realm", PATCH=update_realm),
+    rest_path("realm_default", PATCH=update_realm_default),
     path("realm/subdomain/<subdomain>", check_subdomain_available),
     # realm/domains -> zerver.views.realm_domains
     rest_path("realm/domains", GET=list_realm_domains, POST=create_realm_domain),

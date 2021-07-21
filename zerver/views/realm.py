@@ -17,6 +17,8 @@ from zerver.lib.actions import (
     do_set_realm_notifications_stream,
     do_set_realm_property,
     do_set_realm_signup_notifications_stream,
+    do_set_realm_user_default_setting,
+    get_available_notification_sounds,
 )
 from zerver.lib.exceptions import JsonableError, OrganizationOwnerRequired
 from zerver.lib.i18n import get_available_language_codes
@@ -30,10 +32,11 @@ from zerver.lib.validator import (
     check_dict,
     check_int,
     check_int_in,
+    check_string_in,
     check_string_or_int,
     to_non_negative_int,
 )
-from zerver.models import Realm, UserProfile
+from zerver.models import Realm, RealmUserDefault, UserProfile
 
 
 @require_realm_admin
@@ -275,3 +278,100 @@ def realm_reactivation(request: HttpRequest, confirmation_key: str) -> HttpRespo
     do_reactivate_realm(realm)
     context = {"realm": realm}
     return render(request, "zerver/realm_reactivation.html", context)
+
+
+emojiset_choices = {emojiset["key"] for emojiset in UserProfile.emojiset_choices()}
+default_view_options = ["recent_topics", "all_messages"]
+
+
+@require_realm_admin
+@has_request_variables
+def update_realm_default(
+    request: HttpRequest,
+    user_profile: UserProfile,
+    dense_mode: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    starred_message_counts: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    fluid_layout_width: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    high_contrast_mode: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    color_scheme: Optional[int] = REQ(
+        json_validator=check_int_in(UserProfile.COLOR_SCHEME_CHOICES), default=None
+    ),
+    translate_emoticons: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    default_view: Optional[str] = REQ(
+        str_validator=check_string_in(default_view_options), default=None
+    ),
+    left_side_userlist: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    emojiset: Optional[str] = REQ(str_validator=check_string_in(emojiset_choices), default=None),
+    demote_inactive_streams: Optional[int] = REQ(
+        json_validator=check_int_in(UserProfile.DEMOTE_STREAMS_CHOICES), default=None
+    ),
+    enable_stream_desktop_notifications: Optional[bool] = REQ(
+        json_validator=check_bool, default=None
+    ),
+    enable_stream_email_notifications: Optional[bool] = REQ(
+        json_validator=check_bool, default=None
+    ),
+    enable_stream_push_notifications: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    enable_stream_audible_notifications: Optional[bool] = REQ(
+        json_validator=check_bool, default=None
+    ),
+    wildcard_mentions_notify: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    notification_sound: Optional[str] = REQ(default=None),
+    enable_desktop_notifications: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    enable_sounds: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    enable_offline_email_notifications: Optional[bool] = REQ(
+        json_validator=check_bool, default=None
+    ),
+    enable_offline_push_notifications: Optional[bool] = REQ(
+        json_validator=check_bool, default=None
+    ),
+    enable_online_push_notifications: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    enable_digest_emails: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    enable_login_emails: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    enable_marketing_emails: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    message_content_in_email_notifications: Optional[bool] = REQ(
+        json_validator=check_bool, default=None
+    ),
+    pm_content_in_desktop_notifications: Optional[bool] = REQ(
+        json_validator=check_bool, default=None
+    ),
+    desktop_icon_count_display: Optional[int] = REQ(json_validator=check_int, default=None),
+    realm_name_in_notifications: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    presence_enabled: Optional[bool] = REQ(json_validator=check_bool, default=None),
+    enter_sends: Optional[bool] = REQ(json_validator=check_bool, default=None),
+) -> HttpResponse:
+    if (
+        notification_sound is not None
+        and notification_sound not in get_available_notification_sounds()
+        and notification_sound != "none"
+    ):
+        raise JsonableError(_("Invalid notification sound '{}'").format(notification_sound))
+
+    realm_user_default = RealmUserDefault.objects.get(realm=user_profile.realm)
+    request_settings = {
+        k: v
+        for k, v in list(locals().items())
+        if (k in user_profile.property_types or k in realm_user_default.notification_setting_types)
+    }
+    for k, v in list(request_settings.items()):
+        if v is not None and getattr(realm_user_default, k) != v:
+            do_set_realm_user_default_setting(realm_user_default, k, v, acting_user=user_profile)
+
+    if enter_sends is not None and realm_user_default.enter_sends != enter_sends:
+        do_set_realm_user_default_setting(
+            realm_user_default, "enter_sends", enter_sends, acting_user=user_profile
+        )
+
+    # TODO: Do this more generally.
+    from zerver.lib.request import get_request_notes
+
+    request_notes = get_request_notes(request)
+    for req_var in request.POST:
+        if req_var not in request_notes.processed_parameters:
+            request_notes.ignored_parameters.add(req_var)
+
+    result: Dict[str, Any] = {}
+    if len(request_notes.ignored_parameters) > 0:
+        result["ignored_parameters_unsupported"] = list(request_notes.ignored_parameters)
+
+    return json_success(result)
