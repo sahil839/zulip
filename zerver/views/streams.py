@@ -30,6 +30,7 @@ from zerver.actions.message_send import (
 from zerver.actions.streams import (
     bulk_add_subscriptions,
     bulk_remove_subscriptions,
+    do_change_can_remove_subscribers_group,
     do_change_stream_description,
     do_change_stream_message_retention_days,
     do_change_stream_permission,
@@ -77,6 +78,7 @@ from zerver.lib.topic import (
     messages_for_topic,
 )
 from zerver.lib.types import Validator
+from zerver.lib.user_groups import access_user_group_by_id
 from zerver.lib.utils import assert_is_not_none
 from zerver.lib.validator import (
     check_bool,
@@ -264,6 +266,7 @@ def update_stream_backend(
     message_retention_days: Optional[Union[int, str]] = REQ(
         json_validator=check_string_or_int, default=None
     ),
+    can_remove_subscribers_group_id: Optional[int] = REQ(json_validator=check_int, default=None),
 ) -> HttpResponse:
     # We allow realm administrators to to update the stream name and
     # description even for private streams.
@@ -377,6 +380,12 @@ def update_stream_backend(
             stream_post_policy = Stream.STREAM_POST_POLICY_ADMINS
     if stream_post_policy is not None:
         do_change_stream_post_policy(stream, stream_post_policy, acting_user=user_profile)
+
+    if can_remove_subscribers_group_id is not None:
+        user_group = access_user_group_by_id(
+            can_remove_subscribers_group_id, user_profile, for_read=True
+        )
+        do_change_can_remove_subscribers_group(stream, user_group, acting_user=user_profile)
 
     return json_success(request)
 

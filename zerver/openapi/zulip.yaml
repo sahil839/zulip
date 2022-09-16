@@ -14168,6 +14168,7 @@ paths:
           required: false
         - $ref: "#/components/parameters/StreamPostPolicy"
         - $ref: "#/components/parameters/MessageRetentionDays"
+        - $ref: "#/components/parameters/CanRemoveSubscribersGroupId"
       responses:
         "200":
           $ref: "#/components/responses/SimpleSuccess"
@@ -17117,6 +17118,18 @@ components:
           - type: string
           - type: integer
       example: "20"
+      required: false
+    CanRemoveSubscribersGroupId:
+      name: can_remove_subscribers_group_id
+      in: query
+      description: |
+        ID of the user group whose members are allowed to unsubscribe others
+        from the stream.
+
+        **Changes**: New in Zulip 6.0 (feature level 143).
+      schema:
+        type: integer
+      example: 20
       required: false
     LinkifierPattern:
       name: pattern

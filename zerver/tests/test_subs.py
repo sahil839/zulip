@@ -1978,6 +1978,30 @@ class StreamAdminTest(ZulipTestCase):
         stream = get_stream("stream_name1", realm)
         self.assertEqual(stream.message_retention_days, 2)
 
+    def test_change_stream_can_remove_subscribers_group(self) -> None:
+        user_profile = self.example_user("iago")
+        realm = user_profile.realm
+        stream = self.subscribe(user_profile, "stream_name1")
+
+        moderators_system_group = UserGroup.objects.get(
+            name="@role:moderators", realm=realm, is_system_group=True
+        )
+        self.login("shiva")
+        result = self.client_patch(
+            f"/json/streams/{stream.id}",
+            {"can_remove_subscribers_group_id": orjson.dumps(moderators_system_group.id).decode()},
+        )
+        self.assert_json_error(result, "Must be an organization administrator")
+
+        self.login("iago")
+        result = self.client_patch(
+            f"/json/streams/{stream.id}",
+            {"can_remove_subscribers_group_id": orjson.dumps(moderators_system_group.id).decode()},
+        )
+        self.assert_json_success(result)
+        stream = get_stream("stream_name1", realm)
+        self.assertEqual(stream.can_remove_subscribers_group.id, moderators_system_group.id)
+
     def test_stream_message_retention_days_on_stream_creation(self) -> None:
         """
         Only admins can create streams with message_retention_days
