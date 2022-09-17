@@ -270,6 +270,9 @@ class TestCreateStreams(ZulipTestCase):
         self.assertTrue(self.example_user("desdemona").id in events[0]["users"])
         self.assertEqual(events[0]["event"]["streams"][0]["name"], "Private stream")
 
+        moderators_system_group = UserGroup.objects.get(
+            name="@role:moderators", realm=realm, is_system_group=True
+        )
         new_streams, existing_streams = create_streams_if_needed(
             realm,
             [
@@ -279,6 +282,7 @@ class TestCreateStreams(ZulipTestCase):
                     "invite_only": True,
                     "stream_post_policy": Stream.STREAM_POST_POLICY_ADMINS,
                     "message_retention_days": -1,
+                    "can_remove_subscribers_group": moderators_system_group,
                 }
                 for (stream_name, stream_description) in zip(stream_names, stream_descriptions)
             ],
@@ -295,6 +299,7 @@ class TestCreateStreams(ZulipTestCase):
             self.assertTrue(stream.invite_only)
             self.assertTrue(stream.stream_post_policy == Stream.STREAM_POST_POLICY_ADMINS)
             self.assertTrue(stream.message_retention_days == -1)
+            self.assertEqual(stream.can_remove_subscribers_group.id, moderators_system_group.id)
 
         new_streams, existing_streams = create_streams_if_needed(
             realm,
@@ -466,6 +471,38 @@ class TestCreateStreams(ZulipTestCase):
 
         # But it should be marked as read for Iago, the stream creator.
         self.assert_length(iago_unread_messages, 0)
+
+    def test_can_remove_subscribers_group_on_stream_creation(self) -> None:
+        user = self.example_user("hamlet")
+        realm = user.realm
+        self.login_user(user)
+        moderators_system_group = UserGroup.objects.get(
+            name="@role:moderators", realm=realm, is_system_group=True
+        )
+        admins_system_group = UserGroup.objects.get(
+            name="@role:administrators", realm=realm, is_system_group=True
+        )
+
+        post_data = {
+            "subscriptions": orjson.dumps(
+                [{"name": "new_stream1", "description": "First new stream"}]
+            ).decode(),
+            "can_remove_subscribers_group_id": orjson.dumps(moderators_system_group.id).decode(),
+        }
+        result = self.api_post(user, "/api/v1/users/me/subscriptions", post_data, subdomain="zulip")
+        self.assert_json_success(result)
+        stream = get_stream("new_stream1", realm)
+        self.assertEqual(stream.can_remove_subscribers_group.id, moderators_system_group.id)
+
+        post_data = {
+            "subscriptions": orjson.dumps(
+                [{"name": "new_stream2", "description": "Second new stream"}]
+            ).decode(),
+        }
+        result = self.api_post(user, "/api/v1/users/me/subscriptions", post_data, subdomain="zulip")
+        self.assert_json_success(result)
+        stream = get_stream("new_stream2", realm)
+        self.assertEqual(stream.can_remove_subscribers_group.id, admins_system_group.id)
 
 
 class RecipientTest(ZulipTestCase):
@@ -4280,7 +4317,7 @@ class SubscriptionAPITest(ZulipTestCase):
                     streams_to_sub,
                     dict(principals=orjson.dumps([self.test_user.id]).decode()),
                 )
-        self.assert_length(queries, 12)
+        self.assert_length(queries, 13)
 
         add_event, add_peer_event = events
         self.assertEqual(add_event["event"]["type"], "subscription")
@@ -4609,7 +4646,7 @@ class SubscriptionAPITest(ZulipTestCase):
                     subdomain="zephyr",
                     allow_fail=True,
                 )
-        self.assert_length(queries, 4)
+        self.assert_length(queries, 5)
 
         with self.tornado_redirected_to_list(events, expected_num_events=0):
             bulk_remove_subscriptions(
@@ -4662,7 +4699,7 @@ class SubscriptionAPITest(ZulipTestCase):
 
         # The only known O(N) behavior here is that we call
         # principal_to_user_profile for each of our users.
-        self.assert_length(queries, 19)
+        self.assert_length(queries, 20)
         self.assert_length(cache_tries, 4)
 
     def test_subscriptions_add_for_principal(self) -> None:
@@ -5574,7 +5611,7 @@ class GetSubscribersTest(ZulipTestCase):
                 streams,
                 dict(principals=orjson.dumps(users_to_subscribe).decode()),
             )
-        self.assert_length(queries, 46)
+        self.assert_length(queries, 47)
 
         msg = f"""
             @**King Hamlet|{hamlet.id}** subscribed you to the following streams:
