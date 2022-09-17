@@ -79,6 +79,11 @@ export function get_realm_user_groups(): UserGroup[] {
     return user_groups.filter((group) => !group.is_system_group);
 }
 
+export function get_realm_system_user_groups() : UserGroup[] {
+    const user_groups = Array.from(user_group_by_id_dict.values()).sort((a, b) => a.id - b.id);
+    return user_groups.filter((group) => group.is_system_group);
+}
+
 export function is_direct_member_of(user_id: number, user_group_id: number): boolean {
     const user_group = user_group_by_id_dict.get(user_group_id);
     if (user_group === undefined) {
