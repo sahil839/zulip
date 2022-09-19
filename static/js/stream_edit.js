@@ -12,6 +12,7 @@ import * as browser_history from "./browser_history";
 import * as channel from "./channel";
 import * as components from "./components";
 import * as confirm_dialog from "./confirm_dialog";
+import {DropdownListWidget} from "./dropdown_list_widget";
 import * as dialog_widget from "./dialog_widget";
 import * as hash_util from "./hash_util";
 import {$t, $t_html} from "./i18n";
@@ -29,6 +30,7 @@ import * as stream_ui_updates from "./stream_ui_updates";
 import * as sub_store from "./sub_store";
 import * as ui from "./ui";
 import * as ui_report from "./ui_report";
+import * as user_groups from "./user_groups";
 import {user_settings} from "./user_settings";
 import * as util from "./util";
 
@@ -520,6 +522,19 @@ export function initialize() {
                     const dropdown_value = e.target.value;
                     change_stream_message_retention_days_block_display_property(dropdown_value);
                 });
+
+                const user_groups_list = user_groups.get_realm_system_user_groups().map((group) => ({
+                    name: group.name,
+                    value: group.id.toString(),
+                }));
+
+                const opts = {
+                    widget_name: "edit_can_remove_subscribers_group",
+                    data: user_groups_list,
+                    value: stream.can_remove_subscribers_group_id,
+                };
+                const edit_can_remove_subscribers_group_dropdown_widget = new DropdownListWidget(opts);
+                edit_can_remove_subscribers_group_dropdown_widget.setup();
             },
             on_show: () => {
                 stream_settings_ui.hide_or_disable_stream_privacy_options_if_required(

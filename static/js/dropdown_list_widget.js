@@ -56,7 +56,7 @@ export class DropdownListWidget {
 
         // Happy path
         const item = this.data.find((x) => x.value === value.toString());
-
+        console.log(item);
         if (item === undefined) {
             this.render_default_text($elem);
             return;

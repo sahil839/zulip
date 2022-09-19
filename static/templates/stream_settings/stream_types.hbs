@@ -37,6 +37,16 @@
     </select>
 </div>
 
+{{#if is_stream_edit}}
+<div class="input-group new-style">
+    <label class="dropdown-title">{{t 'Who can unsubscribe others from this stream?'}}
+    </label>
+    {{> ../settings/dropdown_list_widget
+        widget_name="edit_can_remove_subscribers_group"
+        list_placeholder=(t 'Filter streams')}}
+</div>
+{{/if}}
+
 {{#if (or is_owner is_stream_edit)}}
 <div>
     <label class="stream-title">{{t "Message retention for stream" }}
