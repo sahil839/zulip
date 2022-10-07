@@ -60,7 +60,7 @@ export function to_end() {
         narrow.activate([
             {operator: "stream", operand: narrowed_stream},
             {operator: "topic", operand: narrowed_topic},
-        ]);
+        ], {trigger: "end-key"});
     }
 
     const next_id = message_lists.current.last().id;

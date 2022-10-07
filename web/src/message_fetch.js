@@ -439,13 +439,13 @@ export function initialize(home_view_loaded) {
         const messages = data.messages;
         const latest_id = messages.at(-1).id;
 
-        load_messages({
-            anchor: latest_id,
-            num_before: 0,
-            num_after: consts.catch_up_batch_size,
-            msg_list: message_lists.home,
-            cont: load_more,
-        });
+        // load_messages({
+        //     anchor: latest_id,
+        //     num_before: 0,
+        //     num_after: consts.catch_up_batch_size,
+        //     msg_list: message_lists.home,
+        //     cont: load_more,
+        // });
     }
 
     let anchor;

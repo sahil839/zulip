@@ -531,6 +531,9 @@ export function activate(raw_operators, opts) {
                 anchor = id_info.final_select_id;
         }
 
+        if (opts.trigger === "end-key") {
+            anchor = "newest";
+        }
         message_fetch.load_messages_for_narrow({
             anchor,
             cont() {
