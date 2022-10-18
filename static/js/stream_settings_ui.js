@@ -214,7 +214,6 @@ export function update_stream_privacy(slim_sub, values) {
     // Update UI elements
     update_left_panel_row(sub);
     stream_ui_updates.update_stream_privacy_icon_in_settings(sub);
-    stream_ui_updates.update_stream_subscription_type_text(sub);
     stream_ui_updates.update_change_stream_privacy_settings(sub);
     stream_ui_updates.update_settings_button_for_sub(sub);
     stream_ui_updates.update_add_subscriptions_elements(sub);
@@ -232,12 +231,10 @@ export function update_stream_privacy(slim_sub, values) {
 
 export function update_stream_post_policy(sub, new_value) {
     stream_data.update_stream_post_policy(sub, new_value);
-    stream_ui_updates.update_stream_subscription_type_text(sub);
 }
 
 export function update_message_retention_setting(sub, new_value) {
     stream_data.update_message_retention_setting(sub, new_value);
-    stream_ui_updates.update_stream_subscription_type_text(sub);
 }
 
 export function set_color(stream_id, color) {
@@ -1015,12 +1012,27 @@ export function update_web_public_stream_privacy_option_state($container) {
     const $web_public_stream_elem = $container.find(
         `input[value='${CSS.escape(stream_data.stream_privacy_policy_values.web_public.code)}']`,
     );
+
+    const for_stream_edit_panel = $container.attr("id") === "stream_permission_settings";
+    if (for_stream_edit_panel) {
+        const stream_id = Number.parseInt(
+            $container.closest(".subscription_settings.show").attr("data-stream-id"),
+            10,
+        );
+        const sub = sub_store.get(stream_id);
+        if (!sub.can_change_stream_permissions) {
+            // We do not want to enable the already disabled web-public option
+            // in stream-edit panel if user is not allowed to change stream
+            // privacy at all.
+            return;
+        }
+    }
+
     if (
         !page_params.server_web_public_streams_enabled ||
         !page_params.realm_enable_spectator_access
     ) {
-        const for_change_privacy_modal = $container.attr("id") === "stream_privacy_modal";
-        if (for_change_privacy_modal && $web_public_stream_elem.is(":checked")) {
+        if (for_stream_edit_panel && $web_public_stream_elem.is(":checked")) {
             // We do not hide web-public option in the "Change privacy" modal if
             // stream is web-public already. The option is disabled in this case.
             $web_public_stream_elem.prop("disabled", true);
@@ -1083,15 +1095,15 @@ export function update_stream_privacy_choices(policy) {
     if (!overlays.streams_open()) {
         return;
     }
-    const change_privacy_modal_opened = $("#stream_privacy_modal").is(":visible");
+    const stream_edit_panel_opened = $("#stream_permission_settings").is(":visible");
     const stream_creation_form_opened = $("#stream-creation").is(":visible");
 
-    if (!change_privacy_modal_opened && !stream_creation_form_opened) {
+    if (!stream_edit_panel_opened && !stream_creation_form_opened) {
         return;
     }
     let $container = $("#stream-creation");
-    if (change_privacy_modal_opened) {
-        $container = $("#stream_privacy_modal");
+    if (stream_edit_panel_opened) {
+        $container = $("#stream_permission_settings");
     }
 
     if (policy === "create_private_stream_policy") {

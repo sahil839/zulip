@@ -736,7 +736,14 @@ div.overlay {
     }
 }
 
-#settings_page {
+#settings_page,
+#stream_settings {
+    h3 {
+        font-size: 1.5em;
+        font-weight: normal;
+        line-height: 1.5;
+    }
+
     .save-discard-widget-button {
         border-radius: 5px;
         border: 1px solid hsl(0, 0%, 80%);

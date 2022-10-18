@@ -893,7 +893,7 @@ li.actual-dropdown-menu i {
 #settings_content .dependent-block,
 #invite-user .dependent-block,
 #stream-creation .dependent-block,
-#stream_privacy_modal .dependent-block {
+#stream_permission_settings .dependent-block {
     margin: 15px 0 -5px 23px;
 }
 

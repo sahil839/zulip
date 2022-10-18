@@ -258,7 +258,13 @@ export function show_settings_for(node) {
         notification_settings,
         other_settings,
         stream_post_policy_values: stream_data.stream_post_policy_values,
-        message_retention_text: get_retention_policy_text_for_subscription_type(sub),
+        stream_privacy_policy_values: stream_data.stream_privacy_policy_values,
+        stream_privacy_policy: stream_data.get_stream_privacy_policy(stream_id),
+        zulip_plan_is_not_limited: page_params.zulip_plan_is_not_limited,
+        upgrade_text_for_wide_organization_logo:
+            page_params.upgrade_text_for_wide_organization_logo,
+        is_admin: page_params.is_admin,
+        org_level_message_retention_setting: get_display_text_for_realm_message_retention_setting(),
     });
     ui.get_content_element($("#stream_settings")).html(html);
 
@@ -273,6 +279,8 @@ export function show_settings_for(node) {
     $edit_container.addClass("show");
 
     show_subscription_settings(sub);
+    settings_org.set_message_retention_setting_dropdown(sub);
+    stream_ui_updates.enable_or_disable_permission_settings_in_edit_panel(sub);
 }
 
 export function setup_stream_settings(node) {
@@ -760,5 +768,13 @@ export function initialize() {
         if ($(e.target).closest(".check, .subscription_settings").length === 0) {
             open_edit_panel_for_row(this);
         }
+    });
+
+    $("#manage_streams_container").on("change", ".stream_message_retention_setting", (e) => {
+        const message_retention_setting_dropdown_value = e.target.value;
+        settings_org.change_element_block_display_property(
+            "stream_message_retention_custom_input",
+            message_retention_setting_dropdown_value === "custom_period",
+        );
     });
 }
