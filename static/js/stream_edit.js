@@ -21,6 +21,7 @@ import * as keydown_util from "./keydown_util";
 import * as narrow_state from "./narrow_state";
 import {page_params} from "./page_params";
 import * as settings_config from "./settings_config";
+import * as settings_org from "./settings_org";
 import * as settings_ui from "./settings_ui";
 import * as stream_color from "./stream_color";
 import * as stream_data from "./stream_data";
@@ -367,7 +368,7 @@ export function set_stream_property(sub, property, value, status_element) {
     bulk_set_stream_property([sub_data], status_element);
 }
 
-function get_message_retention_days_from_sub(sub) {
+export function get_message_retention_days_from_sub(sub) {
     if (sub.message_retention_days === null) {
         return "realm_default";
     }
@@ -776,5 +777,16 @@ export function initialize() {
             "stream_message_retention_custom_input",
             message_retention_setting_dropdown_value === "custom_period",
         );
+    });
+
+    $("#manage_streams_container").on("change input", "input, select, textarea", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const stream_id = get_stream_id(e.target);
+        const sub = sub_store.get(stream_id);
+        const $subsection = $(e.target).closest(".settings-subsection-parent");
+        settings_org.save_discard_widget_status_handler($subsection, false, sub);
+        return undefined;
     });
 }

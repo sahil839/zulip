@@ -37,9 +37,12 @@ kbd {
         display: block !important;
     }
 
-    #settings_page .save-button-controls {
-        display: block;
-        margin: 10px 0 0;
+    #settings_page,
+    #stream_settings {
+        .save-button-controls {
+            display: block;
+            margin: 10px 0 0;
+        }
     }
 }
 
