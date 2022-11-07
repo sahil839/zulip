@@ -216,7 +216,6 @@ export function update_stream_privacy(slim_sub, values) {
     stream_ui_updates.update_setting_element(sub, "stream_privacy");
     stream_ui_updates.enable_or_disable_permission_settings_in_edit_panel(sub);
     stream_ui_updates.update_stream_privacy_icon_in_settings(sub);
-    stream_ui_updates.update_change_stream_privacy_settings(sub);
     stream_ui_updates.update_settings_button_for_sub(sub);
     stream_ui_updates.update_add_subscriptions_elements(sub);
     stream_ui_updates.enable_or_disable_subscribers_tab(sub);
@@ -314,7 +313,6 @@ export function update_settings_for_subscribed(slim_sub) {
         stream_ui_updates.update_toggler_for_sub(sub);
         stream_ui_updates.update_stream_row_in_settings_tab(sub);
         stream_ui_updates.update_settings_button_for_sub(sub);
-        stream_ui_updates.update_change_stream_privacy_settings(sub);
         stream_ui_updates.enable_or_disable_permission_settings_in_edit_panel(sub);
     } else {
         add_sub_to_table(sub);
@@ -343,7 +341,6 @@ export function update_settings_for_unsubscribed(slim_sub) {
     stream_ui_updates.update_toggler_for_sub(sub);
     stream_ui_updates.update_settings_button_for_sub(sub);
     stream_ui_updates.update_regular_sub_settings(sub);
-    stream_ui_updates.update_change_stream_privacy_settings(sub);
     stream_ui_updates.enable_or_disable_permission_settings_in_edit_panel(sub);
 
     // If user unsubscribed from private stream then user cannot subscribe to

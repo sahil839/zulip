@@ -125,17 +125,6 @@ export function update_regular_sub_settings(sub) {
     }
 }
 
-export function update_change_stream_privacy_settings(sub) {
-    // This is in the right panel.
-    const $stream_privacy_btn = $(".change-stream-privacy");
-
-    if (sub.can_change_stream_permissions) {
-        $stream_privacy_btn.show();
-    } else {
-        $stream_privacy_btn.hide();
-    }
-}
-
 export function enable_or_disable_permission_settings_in_edit_panel(sub) {
     if (!hash_util.is_editing_stream(sub.stream_id)) {
         return;

@@ -259,11 +259,6 @@ h4.user_group_setting_subsection_title {
     padding-top: 40px;
 }
 
-.change-stream-privacy {
-    width: 100%;
-    text-align: center;
-}
-
 .subscriptions-container .subscriptions-header .fa-chevron-left,
 .user-groups-container .user-groups-header .fa-chevron-left,
 #settings_overlay_container .settings-header.mobile .fa-chevron-left {
