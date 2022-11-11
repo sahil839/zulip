@@ -13,7 +13,7 @@
     <div class="form-horizontal privacy_settings settings-subsection-parent">
         <div class="subsection-header inline-block">
             <h3 class="inline-block">{{t "Privacy settings" }}</h3>
-            {{> settings_save_discard_widget section_name="privacy-setting" show_only_indicator=false }}
+            {{> settings_save_discard_widget id_prefix="org" section_name="privacy-setting" show_only_indicator=false }}
         </div>
         {{> settings_checkbox
           setting_name="presence_enabled"
@@ -33,7 +33,7 @@
     <div class="form-horizontal other_settings settings-subsection-parent">
         <div class="subsection-header inline-block">
             <h3 class="inline-block">{{t "Other settings" }}</h3>
-            {{> settings_save_discard_widget section_name="other-setting" show_only_indicator=false }}
+            {{> settings_save_discard_widget id_prefix="org" section_name="other-setting" show_only_indicator=false }}
         </div>
         {{> settings_checkbox
           setting_name="enter_sends"
