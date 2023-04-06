@@ -537,6 +537,9 @@ export function activate(raw_operators, opts) {
         message_fetch.load_messages_for_narrow({
             anchor,
             cont() {
+                console.log(select_immediately);
+                console.log(id_info);
+                console.log(then_select_offset);
                 if (!select_immediately) {
                     update_selection({
                         id_info,
