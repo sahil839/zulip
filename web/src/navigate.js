@@ -61,8 +61,9 @@ export function to_end() {
             {operator: "stream", operand: narrowed_stream},
             {operator: "topic", operand: narrowed_topic},
         ], {trigger: "end-key"});
+        return;
     }
-
+    console.log("byee");
     const next_id = message_lists.current.last().id;
     message_lists.current.select_id(next_id, {then_scroll: true, from_scroll: true});
     unread_ops.process_scrolled_to_bottom();

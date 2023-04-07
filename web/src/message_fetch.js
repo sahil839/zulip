@@ -256,6 +256,7 @@ export function load_messages(opts, attempt = 1) {
         url: "/json/messages",
         data,
         success(data) {
+            console.log("Heyy");
             get_messages_success(data, opts);
         },
         error(xhr) {

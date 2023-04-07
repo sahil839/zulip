@@ -505,7 +505,7 @@ export function activate(raw_operators, opts) {
         then_select_offset = opts.then_select_offset;
     }
 
-    const select_immediately = id_info.local_select_id !== undefined;
+    let select_immediately = id_info.local_select_id !== undefined;
 
     {
         let anchor;
@@ -533,6 +533,8 @@ export function activate(raw_operators, opts) {
 
         if (opts.trigger === "end-key") {
             anchor = "newest";
+            id_info.final_select_id = LARGER_THAN_MAX_MESSAGE_ID;
+            select_immediately = false;
         }
         message_fetch.load_messages_for_narrow({
             anchor,
