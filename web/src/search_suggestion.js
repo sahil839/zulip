@@ -1,5 +1,7 @@
 import Handlebars from "handlebars/runtime";
 
+import render_inline_decorated_stream_name from "../templates/inline_decorated_stream_name.hbs";
+
 import * as common from "./common";
 import {Filter} from "./filter";
 import * as huddle_data from "./huddle_data";
@@ -13,8 +15,8 @@ import * as typeahead_helper from "./typeahead_helper";
 
 export const max_num_of_search_results = 12;
 
-function stream_matches_query(stream_name, q) {
-    return common.phrase_match(q, stream_name);
+function stream_matches_query(stream, q) {
+    return common.phrase_match(q, stream.name);
 }
 
 function make_person_highlighter(query) {
@@ -22,6 +24,24 @@ function make_person_highlighter(query) {
 
     return function (person) {
         return highlight_query(person.full_name);
+    };
+}
+
+function make_stream_highlighter(query) {
+    const regex = typeahead_helper.build_highlight_regex(query);
+    const highlight_query = typeahead_helper.highlight_with_escaping_and_regex;
+
+    return function (stream) {
+        return highlight_query(regex, stream.name);
+    };
+}
+
+function highlight_stream(stream, highlighter) {
+    const highlighted_name = highlighter(stream);
+    return {
+        name: new Handlebars.SafeString(highlighted_name),
+        invite_only: stream.invite_only,
+        is_web_public: stream.is_web_public,
     };
 }
 
@@ -109,23 +129,23 @@ function get_stream_suggestions(last, operators) {
     }
 
     const query = last.operand;
-    let streams = stream_data.subscribed_streams();
-
+    let streams = stream_data.subscribed_subs();
     streams = streams.filter((stream) => stream_matches_query(stream, query));
 
-    streams = typeahead_helper.sorter(query, streams, (x) => x);
+    streams = typeahead_helper.sorter(query, streams, (x) => x.name);
 
-    const regex = typeahead_helper.build_highlight_regex(query);
-    const highlight_query = typeahead_helper.highlight_with_escaping_and_regex;
+    const stream_highlighter = make_stream_highlighter(query);
 
     const objs = streams.map((stream) => {
         const prefix = "stream";
-        const highlighted_stream = highlight_query(regex, stream);
         const verb = last.negated ? "exclude " : "";
-        const description_html = verb + prefix + " " + highlighted_stream;
+
+        const highlighed_stream = highlight_stream(stream, stream_highlighter);
+        const rendered_stream = render_inline_decorated_stream_name({stream: highlighed_stream});
+        const description_html = verb + prefix + " " + rendered_stream;
         const term = {
             operator: "stream",
-            operand: stream,
+            operand: stream.name,
             negated: last.negated,
         };
         const search_string = Filter.unparse([term]);

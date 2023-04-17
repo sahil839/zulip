@@ -400,11 +400,13 @@ test("group_suggestions", () => {
     assert.deepEqual(suggestions.strings, expected);
 });
 
-test("empty_query_suggestions", () => {
+test("empty_query_suggestions", ({mock_template}) => {
     const query = "";
 
     stream_data.add_sub({stream_id: 44, name: "devel", subscribed: true});
     stream_data.add_sub({stream_id: 77, name: "office", subscribed: true});
+
+    mock_template("inline_decorated_stream_name.hbs", false, () => {});
 
     const suggestions = get_suggestions("", query);
 
@@ -499,11 +501,12 @@ test("has_suggestions", ({override}) => {
     assert.deepEqual(suggestions.strings, expected);
 });
 
-test("check_is_suggestions", ({override}) => {
+test("check_is_suggestions", ({override, mock_template}) => {
     let query = "i";
     stream_data.add_sub({stream_id: 44, name: "devel", subscribed: true});
     stream_data.add_sub({stream_id: 77, name: "office", subscribed: true});
     override(narrow_state, "stream", () => {});
+    mock_template("inline_decorated_stream_name.hbs", false, () => {});
 
     let suggestions = get_suggestions("", query);
     let expected = [
@@ -693,13 +696,14 @@ test("sent_by_me_suggestions", ({override}) => {
     assert.deepEqual(suggestions.strings, expected);
 });
 
-test("topic_suggestions", ({override}) => {
+test("topic_suggestions", ({override, mock_template}) => {
     let suggestions;
     let expected;
 
     override(stream_topic_history_util, "get_server_history", () => {});
     stream_data.add_sub({stream_id: 77, name: "office", subscribed: true});
     override(narrow_state, "stream", () => "office");
+    mock_template("inline_decorated_stream_name.hbs", false, () => {});
 
     const devel_id = 44;
     const office_id = 77;
@@ -811,9 +815,10 @@ test("topic_suggestions (limits)", () => {
     assert_result("z", []);
 });
 
-test("whitespace_glitch", ({override}) => {
+test("whitespace_glitch", ({override, mock_template}) => {
     const query = "stream:office "; // note trailing space
 
+    mock_template("inline_decorated_stream_name.hbs", false, () => {});
     override(stream_topic_history_util, "get_server_history", () => {});
     stream_data.add_sub({stream_id: 77, name: "office", subscribed: true});
 
@@ -824,11 +829,12 @@ test("whitespace_glitch", ({override}) => {
     assert.deepEqual(suggestions.strings, expected);
 });
 
-test("stream_completion", ({override}) => {
+test("stream_completion", ({override, mock_template}) => {
     stream_data.add_sub({stream_id: 77, name: "office", subscribed: true});
     stream_data.add_sub({stream_id: 88, name: "dev help", subscribed: true});
 
     override(narrow_state, "stream", () => {});
+    mock_template("inline_decorated_stream_name.hbs", false, () => {});
 
     let query = "stream:of";
     let suggestions = get_suggestions("", query);
@@ -974,9 +980,10 @@ test("operator_suggestions", ({override}) => {
     assert.deepEqual(suggestions.strings, expected);
 });
 
-test("queries_with_spaces", () => {
+test("queries_with_spaces", ({mock_template}) => {
     stream_data.add_sub({stream_id: 77, name: "office", subscribed: true});
     stream_data.add_sub({stream_id: 88, name: "dev help", subscribed: true});
+    mock_template("inline_decorated_stream_name.hbs", false, () => {});
 
     // test allowing spaces with quotes surrounding operand
     let query = 'stream:"dev he"';
