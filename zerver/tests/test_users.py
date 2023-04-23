@@ -1449,6 +1449,7 @@ class UserProfileTest(ZulipTestCase):
                 is_system_bot=True,
                 role=400,
                 timezone="",
+                avatar_source=UserProfile.AVATAR_FROM_GRAVATAR,
             )
 
         expected_emails = [

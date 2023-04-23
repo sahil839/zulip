@@ -499,6 +499,7 @@ def format_user_row(
     result = APIUserDict(
         email=row["email"],
         user_id=row["id"],
+        avatar_source=row["avatar_source"],
         avatar_version=row["avatar_version"],
         is_admin=is_admin,
         is_owner=is_owner,
@@ -910,6 +911,7 @@ def get_data_for_inaccessible_user(realm: Realm, user_id: int) -> APIUserDict:
         delivery_email=None,
         avatar_url=get_avatar_for_inaccessible_user(),
         profile_data={},
+        avatar_source=UserProfile.AVATAR_FROM_USER,
     )
     return user_dict
 

@@ -1114,6 +1114,7 @@ realm_user_type = DictType(
         ("user_id", int),
         ("email", str),
         ("avatar_url", OptionalType(str)),
+        ("avatar_source", str),
         ("avatar_version", int),
         ("full_name", str),
         ("is_admin", bool),

@@ -20,6 +20,15 @@ format used by the Zulip server that they are interacting with.
 
 ## Changes in Zulip 9.0
 
+**Feature level 249**
+
+* [`POST /register`](/api/register-queue), [`POST
+  /events`](/api/get-events), [`GET /users`](/api/get-users),
+  [`GET /users/{user_id}`](/api/get-user), [`GET
+  /users/{email}`](/api/get-user-by-email), [`GET
+  /users/me`](/api/get-own-user): Added `avatar_source` field to
+  the user objects.
+
 **Feature level 248**
 
 * [`POST /typing`](/api/set-typing-status), [`POST /messages`](/api/send-message),
