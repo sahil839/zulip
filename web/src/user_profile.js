@@ -522,6 +522,7 @@ export function show_edit_bot_info_modal(user_id, $container) {
         user_role_values: settings_config.user_role_values,
         disable_role_dropdown: !current_user.is_admin || (bot.is_owner && !current_user.is_owner),
         bot_avatar_url: people.bot_avatar_url_for_edit_form(bot),
+        bot_avatar_source: bot.avatar_source,
         owner_full_name,
         current_bot_owner: bot.bot_owner_id,
         is_incoming_webhook_bot: bot.bot_type === INCOMING_WEBHOOK_BOT_TYPE,
@@ -568,6 +569,8 @@ export function show_edit_bot_info_modal(user_id, $container) {
         const $cancel_btn = $("#user-profile-modal .dialog_exit_button");
         show_button_spinner($submit_btn);
         $cancel_btn.prop("disabled", true);
+
+        formData.append("avatar_source", $("#bot-edit-form .bot-avatar-source").val());
 
         channel.patch({
             url,
@@ -655,17 +658,6 @@ export function show_edit_bot_info_modal(user_id, $container) {
                 ),
             );
         }
-
-        // Hide the avatar if the user has uploaded an image
-        $("#bot-edit-form").on("input", ".edit_bot_avatar_file_input", () => {
-            $("#current_bot_avatar_image").hide();
-        });
-
-        // Show the avatar if the user has cleared the image
-        $("#bot-edit-form").on("click", ".edit_bot_avatar_clear_button", () => {
-            $("#current_bot_avatar_image").show();
-            $(".edit_bot_avatar_file_input").trigger("input");
-        });
 
         $("#bot-edit-form").on("click", ".deactivate_bot_button", (e) => {
             e.preventDefault();

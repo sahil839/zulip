@@ -28,6 +28,8 @@ format used by the Zulip server that they are interacting with.
   /users/{email}`](/api/get-user-by-email), [`GET
   /users/me`](/api/get-own-user): Added `avatar_source` field to
   the user objects.
+* `PATCH /bots/{bot_user_id}`: Added `avatar_source` parameter
+  to support removing the bot avatar.
 
 **Feature level 248**
 

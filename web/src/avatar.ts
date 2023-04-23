@@ -5,6 +5,7 @@ import render_confirm_delete_user_avatar from "../templates/confirm_dialog/confi
 import * as channel from "./channel";
 import * as confirm_dialog from "./confirm_dialog";
 import {$t_html} from "./i18n";
+import * as people from "./people";
 import * as settings_data from "./settings_data";
 import {current_user, realm} from "./state_data";
 import * as upload_widget from "./upload_widget";
@@ -36,16 +37,40 @@ export function build_bot_create_widget(): UploadWidget {
 }
 
 export function build_bot_edit_widget($target: JQuery): UploadWidget {
+    const bot_id = $target.data("user-id");
+    const bot = people.get_by_user_id(bot_id);
     const get_file_input = function (): JQuery<HTMLInputElement> {
         return $target.find<HTMLInputElement>(".edit_bot_avatar_file_input");
     };
 
+    if (bot.avatar_source === "G") {
+        $target.find(".bot-avatar-delete-button").hide();
+    } else {
+        $target.find(".bot-avatar-delete-button").show();
+    }
+
+    $("#edit-bot-avatar-upload-widget .bot-avatar-delete-button").on("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        $("#edit-bot-avatar-upload-widget .bot-avatar-delete-button").hide();
+        $target.find(".bot-avatar-source").val("G");
+        const avatar_url = people.get_bot_gravatar_url_for_edit_form(bot.email);
+        get_file_input().val("");
+        $("#edit-bot-avatar-upload-widget .bot-avatar-image").attr("src", avatar_url);
+    });
+
     const $file_name_field = $target.find(".edit_bot_avatar_file");
     const $input_error = $target.find(".edit_bot_avatar_error");
-    const $clear_button = $target.find(".edit_bot_avatar_clear_button");
+    const $clear_button = $target.find(".edit_bot_avatar_reset_button");
     const $upload_button = $target.find(".edit_bot_avatar_upload_button");
-    const $preview_text = $target.find(".edit_bot_avatar_preview_text");
-    const $preview_image = $target.find(".edit_bot_avatar_preview_image");
+    const $preview_image = $target.find(".bot-avatar-image");
+
+    $clear_button.on("click", () => {
+        const avatar_url = people.bot_avatar_url_for_edit_form(bot);
+        get_file_input().val("");
+        $("#edit-bot-avatar-upload-widget .bot-avatar-image").attr("src", avatar_url);
+        $target.find(".bot-avatar-source").val(bot.avatar_source).trigger("input");
+    });
 
     return upload_widget.build_widget(
         get_file_input,
@@ -53,7 +78,7 @@ export function build_bot_edit_widget($target: JQuery): UploadWidget {
         $input_error,
         $clear_button,
         $upload_button,
-        $preview_text,
+        undefined,
         $preview_image,
     );
 }

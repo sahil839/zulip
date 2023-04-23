@@ -41,6 +41,7 @@ export type User = {
     timezone: string;
     avatar_url?: string | null;
     avatar_version: number;
+    avatar_source: string;
     profile_data: Record<number, ProfileData>;
     // used for fake user objects.
     is_missing_server_data?: boolean;
@@ -846,14 +847,18 @@ export function small_avatar_url_for_person(person: User): string {
     return format_small_avatar_url(`/avatar/${person.user_id}`);
 }
 
+export function get_bot_gravatar_url_for_edit_form(email: string): string {
+    const hash = md5(email.toLowerCase());
+    const avatar_url = "https://secure.gravatar.com/avatar/" + hash + "?d=identicon";
+    return avatar_url;
+}
+
 export function bot_avatar_url_for_edit_form(person: User): string {
     if (person.avatar_url) {
         return person.avatar_url;
     }
 
-    const hash = md5(person.email.toLowerCase());
-    const avatar_url = "https://secure.gravatar.com/avatar/" + hash + "?d=identicon";
-    return avatar_url;
+    return get_bot_gravatar_url_for_edit_form(person.email);
 }
 
 function medium_gravatar_url_for_email(email: string): string {
@@ -1505,6 +1510,7 @@ export function make_user(user_id: number, email: string, full_name: string): Us
         // it's important for performance that we not hash every user's email to get gravatar URLs.
         avatar_url: undefined,
         avatar_version: 0,
+        avatar_source: "U",
         timezone: "",
         date_joined: "",
         delivery_email: null,

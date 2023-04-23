@@ -1021,12 +1021,42 @@ input[type="checkbox"] {
         margin: 10px 0 5px;
     }
 
-    #current_bot_avatar_image {
-        margin: 5px 0 8px;
+    #edit-bot-avatar-upload-widget {
+        width: fit-content;
+        margin: 2px 0 10px;
     }
 
-    .edit_bot_avatar_preview_text {
-        display: none;
+    .bot-avatar-container {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin-bottom: 10px;
+
+        .bot-avatar-image {
+            width: 100px;
+            height: 100px;
+        }
+
+        &:hover {
+            .bot-avatar-delete-button {
+                opacity: 1;
+            }
+        }
+    }
+
+    .bot-avatar-delete-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: hsl(0deg 0% 75%);
+        opacity: 0;
+        padding: 0;
+        position: absolute;
+        font-size: 2rem;
+        top: 5px;
+        right: 5px;
+        z-index: 99;
+        line-height: 20px;
     }
 }
 
@@ -1034,7 +1064,6 @@ input[type="checkbox"] {
     display: none;
 }
 
-.edit_bot_avatar_preview_image,
 #add_bot_preview_image {
     height: 100px;
     width: 100px;
