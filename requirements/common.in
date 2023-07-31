@@ -191,3 +191,5 @@ circuitbreaker
 
 # Runtime monkeypatching of django-stubs generics
 django-stubs-ext
+
+django-seal
