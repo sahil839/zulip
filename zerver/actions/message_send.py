@@ -30,6 +30,7 @@ from django.utils.translation import override as override_language
 from django_stubs_ext import ValuesQuerySet
 
 from zerver.actions.uploads import do_claim_attachments
+from zerver.lib import mention
 from zerver.lib.addressee import Addressee
 from zerver.lib.alert_words import get_alert_word_automaton
 from zerver.lib.cache import cache_with_key, user_profile_delivery_email_cache_key
@@ -1406,7 +1407,7 @@ def check_message(
     local_id: Optional[str] = None,
     sender_queue_id: Optional[str] = None,
     widget_content: Optional[str] = None,
-    email_gateway: bool = False,
+    email_gateway: bool = True,
     *,
     skip_stream_access_check: bool = False,
     mention_backend: Optional[MentionBackend] = None,
@@ -1516,6 +1517,9 @@ def check_message(
         id = already_sent_mirrored_message_id(message)
         if id is not None:
             raise ZephyrMessageAlreadySentError(id)
+
+    if email_gateway:
+        message.content = mention.USER_GROUP_MENTIONS_RE.sub(lambda m: "@_*{}*".format(m.group("match")), message.content)
 
     widget_content_dict = None
     if widget_content is not None:
