@@ -1853,7 +1853,7 @@ class UserGroupMentionPattern(CompiledInlineProcessor):
         if db_data is not None:
             user_group = db_data.mention_data.get_user_group(name)
             if user_group:
-                if not silent:
+                if not silent and not self.md.email_gateway:
                     self.zmd.zulip_rendering_result.mentions_user_group_ids.add(user_group.id)
                 name = user_group.name
                 user_group_id = str(user_group.id)
@@ -1864,7 +1864,7 @@ class UserGroupMentionPattern(CompiledInlineProcessor):
 
             el = Element("span")
             el.set("data-user-group-id", user_group_id)
-            if silent:
+            if silent or self.md.email_gateway:
                 el.set("class", "user-group-mention silent")
                 text = f"{name}"
             else:
