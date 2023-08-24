@@ -595,7 +595,9 @@ def add_bot_backend(
 
 @require_member_or_admin
 def get_bots_backend(request: HttpRequest, user_profile: UserProfile) -> HttpResponse:
-    bot_profiles = UserProfile.objects.filter(is_bot=True, is_active=True, bot_owner=user_profile)
+    bot_profiles = UserProfile.objects.seal().filter(
+        is_bot=True, is_active=True, bot_owner=user_profile
+    )
     bot_profiles = bot_profiles.select_related(
         "default_sending_stream", "default_events_register_stream"
     )

@@ -182,9 +182,9 @@ def bulk_get_cross_realm_bots() -> Dict[str, UserProfile]:
         "upper(zerver_userprofile.email::text) IN (SELECT upper(email) FROM unnest(%s) AS email)"
     )
     users = list(
-        UserProfile.objects.filter(realm__string_id=settings.SYSTEM_BOT_REALM).extra(
-            where=[where_clause], params=(emails,)
-        )
+        UserProfile.objects.seal()
+        .filter(realm__string_id=settings.SYSTEM_BOT_REALM)
+        .extra(where=[where_clause], params=(emails,))
     )
 
     return {user.email.lower(): user for user in users}
@@ -195,7 +195,7 @@ def user_ids_to_users(user_ids: Sequence[int], realm: Realm) -> List[UserProfile
     # users should be included.
 
     user_profiles = list(
-        UserProfile.objects.filter(id__in=user_ids, realm=realm).select_related("realm")
+        UserProfile.objects.seal().filter(id__in=user_ids, realm=realm).select_related("realm")
     )
 
     found_user_ids = {user_profile.id for user_profile in user_profiles}
@@ -295,6 +295,7 @@ class Account(TypedDict):
 def get_accounts_for_email(email: str) -> List[Account]:
     profiles = (
         UserProfile.objects.select_related("realm")
+        .seal()
         .filter(
             delivery_email__iexact=email.strip(),
             is_active=True,
@@ -594,8 +595,10 @@ def get_raw_user_data(
 
 
 def get_active_bots_owned_by_user(user_profile: UserProfile) -> QuerySet[UserProfile]:
-    return UserProfile.objects.select_related("realm").filter(
-        is_bot=True, is_active=True, bot_owner=user_profile
+    return (
+        UserProfile.objects.select_related("realm")
+        .seal()
+        .filter(is_bot=True, is_active=True, bot_owner=user_profile)
     )
 
 
