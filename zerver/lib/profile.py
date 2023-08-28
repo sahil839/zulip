@@ -7,6 +7,19 @@ from typing_extensions import ParamSpec
 ParamT = ParamSpec("ParamT")
 ReturnT = TypeVar("ReturnT")
 
+import line_profiler
+
+profile = line_profiler.LineProfiler()
+import atexit
+
+
+def print_and_dump():
+    profile.dump_stats("data.stats")
+    profile.print_stats()
+
+
+atexit.register(print_and_dump)
+
 
 def profiled(func: Callable[ParamT, ReturnT]) -> Callable[ParamT, ReturnT]:
     """

@@ -370,6 +370,7 @@ class PermissionTest(ZulipTestCase):
         new_name = "new name"
         self.login("iago")
         hamlet = self.example_user("hamlet")
+        print(UserProfile.objects.filter(realm=hamlet.realm).count())
         req = dict(full_name=new_name)
         result = self.client_patch(f"/json/users/{hamlet.id}", req)
         self.assert_json_success(result)

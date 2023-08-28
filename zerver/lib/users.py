@@ -261,11 +261,17 @@ def access_user_by_id(
     for administrative privileges, with flags for various special
     cases.
     """
+    print("hyyy")
     try:
+        import time
+
+        st = time.time()
         target = get_user_profile_by_id_in_realm(target_user_id, user_profile.realm)
+        end = time.time()
     except UserProfile.DoesNotExist:
         raise JsonableError(_("No such user"))
 
+    print(end - st)
     return access_user_common(target, user_profile, allow_deactivated, allow_bots, for_admin)
 
 
