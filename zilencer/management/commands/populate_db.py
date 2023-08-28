@@ -653,7 +653,8 @@ class Command(BaseCommand):
                 for profile in profiles:
                     email = profile.delivery_email
                     if email not in subscriptions_map:
-                        raise Exception(f"Subscriptions not listed for user {email}")
+                        # raise Exception(f"Subscriptions not listed for user {email}")
+                        continue
 
                     for stream_name in subscriptions_map[email]:
                         stream = Stream.objects.get(name=stream_name, realm=zulip_realm)
