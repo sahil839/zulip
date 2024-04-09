@@ -521,7 +521,7 @@ export function show_edit_bot_info_modal(user_id, $container) {
         full_name: bot.full_name,
         user_role_values: settings_config.user_role_values,
         disable_role_dropdown: !current_user.is_admin || (bot.is_owner && !current_user.is_owner),
-        bot_avatar_url: bot.avatar_url,
+        bot_avatar_url: people.bot_avatar_url_for_edit_form(bot),
         owner_full_name,
         current_bot_owner: bot.bot_owner_id,
         is_incoming_webhook_bot: bot.bot_type === INCOMING_WEBHOOK_BOT_TYPE,

@@ -846,6 +846,16 @@ export function small_avatar_url_for_person(person: User): string {
     return format_small_avatar_url(`/avatar/${person.user_id}`);
 }
 
+export function bot_avatar_url_for_edit_form(person: User): string {
+    if (person.avatar_url) {
+        return person.avatar_url;
+    }
+
+    const hash = md5(person.email.toLowerCase());
+    const avatar_url = "https://secure.gravatar.com/avatar/" + hash + "?d=identicon";
+    return avatar_url;
+}
+
 function medium_gravatar_url_for_email(email: string): string {
     const hash = md5(email.toLowerCase());
     const avatar_url = "https://secure.gravatar.com/avatar/" + hash + "?d=identicon";
