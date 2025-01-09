@@ -61,6 +61,7 @@ from zerver.lib.timestamp import datetime_to_timestamp
 from zerver.lib.timezone import canonicalize_timezone
 from zerver.lib.topic import TOPIC_NAME, maybe_rename_general_chat_to_empty_topic
 from zerver.lib.user_groups import (
+    get_anonymous_group_dict,
     get_group_setting_value_for_api,
     get_recursive_membership_groups,
     get_server_supported_permission_settings,
@@ -169,6 +170,8 @@ def fetch_initial_state_data(
     state["zulip_version"] = ZULIP_VERSION
     state["zulip_feature_level"] = API_FEATURE_LEVEL
     state["zulip_merge_base"] = ZULIP_MERGE_BASE
+
+    anonymous_group_dict: dict[int, AnonymousSettingGroupDict] | None = None
 
     if want("alert_words"):
         state["alert_words"] = [] if user_profile is None else user_alert_words(user_profile)
@@ -293,9 +296,13 @@ def fetch_initial_state_data(
         for property_name in Realm.property_types:
             state["realm_" + property_name] = getattr(realm, property_name)
 
+        anonymous_group_dict = get_anonymous_group_dict(realm)
+
         for setting_name in Realm.REALM_PERMISSION_GROUP_SETTINGS:
             setting_value = getattr(realm, setting_name)
-            state["realm_" + setting_name] = get_group_setting_value_for_api(setting_value)
+            state["realm_" + setting_name] = get_group_setting_value_for_api(
+                setting_value, anonymous_group_dict
+            )
 
         state["realm_create_public_stream_policy"] = (
             get_corresponding_policy_value_for_group_setting(

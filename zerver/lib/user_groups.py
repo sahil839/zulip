@@ -500,9 +500,13 @@ def check_user_group_name(group_name: str) -> str:
 
 def get_group_setting_value_for_api(
     setting_value_group: UserGroup,
+    anonymous_group_dict: dict[int, AnonymousSettingGroupDict] | None,
 ) -> int | AnonymousSettingGroupDict:
     if hasattr(setting_value_group, "named_user_group"):
         return setting_value_group.id
+
+    if anonymous_group_dict is not None and setting_value_group.id in anonymous_group_dict:
+        return anonymous_group_dict[setting_value_group.id]
 
     return AnonymousSettingGroupDict(
         direct_members=[
@@ -510,6 +514,45 @@ def get_group_setting_value_for_api(
         ],
         direct_subgroups=[subgroup.id for subgroup in setting_value_group.direct_subgroups.all()],
     )
+
+
+def get_anonymous_group_dict(realm: Realm) -> dict[int, AnonymousSettingGroupDict]:
+    anonymous_group_ids = UserGroup.objects.filter(realm=realm, named_user_group=None).values_list(
+        "id", flat=True
+    )
+    anonymous_group_dict = {}
+    for group_id in anonymous_group_ids:
+        anonymous_group_dict[group_id] = AnonymousSettingGroupDict(
+            direct_members=[], direct_subgroups=[]
+        )
+
+    user_members = (
+        UserGroupMembership.objects.filter(
+            user_group_id__in=anonymous_group_ids, user_profile__is_active=True
+        )
+        .annotate(
+            member_type=Value("user"),
+        )
+        .values_list("member_type", "user_group_id", "user_profile_id")
+    )
+
+    group_subgroups = (
+        GroupGroupMembership.objects.filter(supergroup_id__in=anonymous_group_ids)
+        .annotate(
+            member_type=Value("group"),
+        )
+        .values_list("member_type", "supergroup_id", "subgroup_id")
+    )
+
+    all_members = user_members.union(group_subgroups)
+    for member_type, group_id, member_id in all_members:
+        assert isinstance(anonymous_group_dict, AnonymousSettingGroupDict)
+        if member_type == "user":
+            anonymous_group_dict[group_id].direct_members.append(member_id)
+        else:
+            anonymous_group_dict[group_id].direct_subgroups.append(member_id)
+
+    return anonymous_group_dict
 
 
 def get_setting_value_for_user_group_object(
