@@ -396,7 +396,7 @@ def update_stream_backend(
 
         expected_current_setting_value = None
         if setting_value.old is not None:
-            expected_current_setting_value = parse_group_setting_value(setting_value.old)
+            expected_current_setting_value = setting_value.old
 
         current_value = getattr(stream, setting_name)
         current_setting_api_value = get_group_setting_value_for_api(current_value)
