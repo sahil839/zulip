@@ -46,12 +46,15 @@ export function build_realm_logo_widget(upload_function: UploadFunction, is_nigh
         });
     });
 
+    upload_widget.set_up_uppy_editing("realm_logo", {aspectRatio: 8});
+
     upload_widget.build_direct_upload_widget(
         get_file_input,
         $file_input_error_elem.expectOne(),
         $upload_button_elem.expectOne(),
         upload_function,
         realm.max_logo_file_size_mib,
+        "realm_logo",
     );
 }
 

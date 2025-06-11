@@ -59,6 +59,9 @@ import "../../styles/widgets.css";
 import "../../styles/print.css";
 import "../../styles/inbox.css";
 import "../../styles/color_picker.css";
+import "@uppy/core/dist/style.css";
+import "@uppy/dashboard/dist/style.css";
+import "@uppy/image-editor/dist/style.css";
 
 // This should be last.
 import "../ui_init.js";
