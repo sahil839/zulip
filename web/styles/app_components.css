@@ -1433,3 +1433,9 @@ input.invalid-input {
         }
     }
 }
+
+#uppy-editor {
+    .uppy-Dashboard-close {
+        display: none;
+    }
+}
