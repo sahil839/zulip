@@ -5,6 +5,7 @@ import ImageEditor from "@uppy/image-editor";
 import * as render_image_editor_modal from "../templates/image_editor_modal.hbs";
 
 import {$t} from "./i18n.ts";
+import * as loading from "./loading.ts";
 import * as modals from "./modals.ts";
 import * as settings_data from "./settings_data.ts";
 import * as util from "./util.ts";
@@ -175,10 +176,10 @@ export function build_direct_upload_widget(
         const $file_input = get_file_input();
         const files = util.the($file_input).files;
         const uppy = uppy_widget_map.get(property_name);
-        uppy.on("file-editor:start", (file) => {
-            console.log("Open modal")
-            uppy.getPlugin("Dashboard").openModal();
-        });
+        // uppy.on("file-editor:start", (file) => {
+        //     console.log("Open modal")
+        //     uppy.getPlugin("Dashboard").openModal();
+        // });
 
         const file_id = uppy.addFile({
             name: "my-file.jpg",
@@ -187,25 +188,24 @@ export function build_direct_upload_widget(
             source: "Local",
             isRemote: false,
         });
-        setTimeout(() => {
-            modals.open("uppy-editor");
-        }, 1500);
+        $("#uppy-editor .modal__content .uppy-Root").css("visibility", "hidden");
+        loading.make_indicator($("#uppy-editor .loading-placeholder"));
 
-        // setTimeout(() => {
-        //     uppy.getPlugin("Dashboard").openModal();
-        // }, 0);
-
-        // uppy.on("file-editor:cancel", (file) => {
-        // //     uppy.removeFile(file.id);
-        // //     $file_input.val("");
-        //     setTimeout(() => {
-        //         uppy.getPlugin("Dashboard").closeModal();
-        //     }, 500);
-        // });
-        uppy.on("dashboard:modal-closed", (file) => {
+        function modal_on_close() {
             uppy.cancelAll();
             $file_input.val("");
+        }
+
+        modals.open("uppy-editor", {on_close_callback: modal_on_close});
+        setTimeout(() => {
+            loading.destroy_indicator($("#uppy-editor .loading-placeholder"));
+            $("#uppy-editor .modal__content .uppy-Root").css("visibility", "");            
+        }, 1000)
+
+        uppy.on("file-editor:cancel", (file) => {
+            modals.close("uppy-editor");
         });
+
         uppy.on("file-editor:complete", (file) => {
             const updated_image_blob = file.data;
             const updated_image_file = new File([updated_image_blob], file.name, {

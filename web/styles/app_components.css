@@ -1438,4 +1438,21 @@ input.invalid-input {
     .uppy-Dashboard-close {
         display: none;
     }
+
+    .loading-placeholder {
+        position: absolute;
+        top: calc(50% - 1.35715em);
+        left: calc(50% - 1.35715em);
+    }
+
+    .modal__content {
+        padding: 0;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .uppy-Dashboard-FileCard,
+    .uppy-Dashboard-files {
+        display: none;
+    }
 }
