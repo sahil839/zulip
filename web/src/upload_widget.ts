@@ -2,7 +2,10 @@ import Uppy from "@uppy/core";
 import Dashboard from "@uppy/dashboard";
 import ImageEditor from "@uppy/image-editor";
 
+import * as render_image_editor_modal from "../templates/image_editor_modal.hbs";
+
 import {$t} from "./i18n.ts";
+import * as modals from "./modals.ts";
 import * as settings_data from "./settings_data.ts";
 import * as util from "./util.ts";
 
@@ -184,18 +187,21 @@ export function build_direct_upload_widget(
             source: "Local",
             isRemote: false,
         });
+        setTimeout(() => {
+            modals.open("uppy-editor");
+        }, 1500);
 
         // setTimeout(() => {
         //     uppy.getPlugin("Dashboard").openModal();
         // }, 0);
 
-        uppy.on("file-editor:cancel", (file) => {
-        //     uppy.removeFile(file.id);
-        //     $file_input.val("");
-            setTimeout(() => {
-                uppy.getPlugin("Dashboard").closeModal();
-            }, 500);
-        });
+        // uppy.on("file-editor:cancel", (file) => {
+        // //     uppy.removeFile(file.id);
+        // //     $file_input.val("");
+        //     setTimeout(() => {
+        //         uppy.getPlugin("Dashboard").closeModal();
+        //     }, 500);
+        // });
         uppy.on("dashboard:modal-closed", (file) => {
             uppy.cancelAll();
             $file_input.val("");
@@ -271,6 +277,7 @@ export function set_up_uppy_editing(
     property_name: string,
     cropperOptions: {aspectRatio: number},
 ): void {
+    $("body").append(render_image_editor_modal());
     const uppy = new Uppy({
         restrictions: {
             allowedFileTypes: supported_types,
@@ -278,12 +285,13 @@ export function set_up_uppy_editing(
         },
     })
         .use(Dashboard, {
-            target: "#uppy-editor",
+            target: "#uppy-editor .modal__content",
+            inline: true,
             theme: settings_data.using_dark_theme() ? "dark" : "light",
             autoOpen: "imageEditor",
             hideUploadButton: true,
-            animateOpenClose: true,
             closeModalOnClickOutside: true,
+            singleFileFullScreen: true,
         })
         .use(ImageEditor, {
             id: "ImageEditor",
