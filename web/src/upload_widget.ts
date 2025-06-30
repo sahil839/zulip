@@ -41,6 +41,18 @@ const supported_types = [
     "image/webp",
 ];
 
+const cropper_opts = {
+    viewMode: 1,
+    background: true,
+    cropBoxResizable: true,
+    movable: true,
+    restore: true,
+    responsive: false,
+    zoomOnWheel: false,
+    croppedCanvasOptions: {},
+    dragMode: "none",
+}
+
 function is_image_format(file: File): boolean {
     const type = file.type;
     if (!type) {
@@ -175,11 +187,14 @@ export function build_direct_upload_widget(
 
         const $file_input = get_file_input();
         const files = util.the($file_input).files;
+
         const uppy = uppy_widget_map.get(property_name);
-        // uppy.on("file-editor:start", (file) => {
-        //     console.log("Open modal")
-        //     uppy.getPlugin("Dashboard").openModal();
-        // });
+
+        if (property_name === "realm_icon") {
+            uppy.getPlugin("ImageEditor").setOptions({cropperOptions: {...cropper_opts, viewMode: 1, aspectRatio:1}})
+        } else {
+            uppy.getPlugin("ImageEditor").setOptions({cropperOptions: {...cropper_opts, aspectRatio: 8}})
+        }
 
         const file_id = uppy.addFile({
             name: "my-file.jpg",
@@ -192,11 +207,12 @@ export function build_direct_upload_widget(
         loading.make_indicator($("#uppy-editor .loading-placeholder"));
 
         function modal_on_close() {
+            uppy.getPlugin("Dashboard").hideAllPanels();
             uppy.cancelAll();
             $file_input.val("");
         }
 
-        modals.open("uppy-editor", {on_close_callback: modal_on_close});
+        modals.open("uppy-editor", {on_hide: modal_on_close});
         setTimeout(() => {
             loading.destroy_indicator($("#uppy-editor .loading-placeholder"));
             $("#uppy-editor .modal__content .uppy-Root").css("visibility", "");            
@@ -219,9 +235,7 @@ export function build_direct_upload_widget(
                     $realm_logo_section.attr("id") === "realm-night-logo-upload-widget";
                 upload_function(updated_image_file, is_night, false);
             }
-            uppy.removeFile(file.id);
-            $file_input.val("");
-            uppy.getPlugin("Dashboard").closeModal();
+            modals.close("uppy-editor");
         });
     }
 
@@ -308,8 +322,7 @@ export function set_up_uppy_editing(
                 flip: false,
             },
             cropperOptions: {
-                viewMode: 1,
-                aspectRatio: cropperOptions.aspectRatio,
+                // viewMode: 1,
                 background: true,
                 cropBoxResizable: true,
                 movable: true,
