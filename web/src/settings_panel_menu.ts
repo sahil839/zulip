@@ -60,6 +60,7 @@ function set_settings_header(key: string): void {
 export class SettingsPanelMenu {
     $main_elem: JQuery;
     hash_prefix: string;
+    base: string;
     $curr_li: JQuery;
     current_tab: string;
     current_user_settings_tab: string | undefined;
@@ -70,6 +71,7 @@ export class SettingsPanelMenu {
     constructor(opts: {$main_elem: JQuery; hash_prefix: string}) {
         this.$main_elem = opts.$main_elem;
         this.hash_prefix = opts.hash_prefix;
+        this.base = opts.hash_prefix === "settings/" ? "settings" : "organization";
         this.$curr_li = this.$main_elem.children("li").eq(0);
         this.current_tab = this.$curr_li.attr("data-section")!;
         this.current_user_settings_tab = "active";
@@ -172,7 +174,7 @@ export class SettingsPanelMenu {
     }
 
     li_for_section(section: string): JQuery {
-        const $li = $(`#settings_overlay_container li[data-section='${CSS.escape(section)}']`);
+        const $li = this.$main_elem.find(`li[data-section='${CSS.escape(section)}']`);
         return $li;
     }
 
@@ -312,7 +314,7 @@ export class SettingsPanelMenu {
     get_panel(): JQuery {
         const section = this.$curr_li.attr("data-section")!;
         const sel = `[data-name='${CSS.escape(section)}']`;
-        const $panel = $(".settings-section" + sel);
+        const $panel = $(`.${CSS.escape(this.base)}-box`).find(".settings-section" + sel);
         return $panel;
     }
 }
