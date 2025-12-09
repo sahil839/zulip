@@ -65,8 +65,10 @@ export class SettingsPanelMenu {
     current_tab: string;
     current_user_settings_tab: string | undefined;
     current_bot_settings_tab: string | undefined;
+    current_bot_personal_settings_tab: string | undefined;
     org_user_settings_toggler: Toggle;
     org_bot_settings_toggler: Toggle;
+    personal_bot_settings_toggler: Toggle;
 
     constructor(opts: {$main_elem: JQuery; hash_prefix: string}) {
         this.$main_elem = opts.$main_elem;
@@ -76,6 +78,7 @@ export class SettingsPanelMenu {
         this.current_tab = this.$curr_li.attr("data-section")!;
         this.current_user_settings_tab = "active";
         this.current_bot_settings_tab = "all-bots";
+        this.current_bot_personal_settings_tab = "your-bots";
         this.org_user_settings_toggler = components.toggle({
             html_class: "org-user-settings-switcher",
             child_wants_focus: true,
@@ -113,6 +116,29 @@ export class SettingsPanelMenu {
             callback: (_name, key) => {
                 browser_history.update(`#organization/bots/${key}`);
                 this.set_bot_settings_tab(key);
+                $(".bot-settings-section").hide();
+                if (key === "all-bots") {
+                    redraw_all_bots_list();
+                } else if (key === "your-bots") {
+                    redraw_your_bots_list();
+                }
+                $(`[data-bot-settings-section="${CSS.escape(key)}"]`).show();
+            },
+        });
+
+        this.personal_bot_settings_toggler = components.toggle({
+            html_class: "personal-bot-settings-switcher",
+            child_wants_focus: true,
+            values: [
+                {label: $t({defaultMessage: "All bots"}), key: "all-bots"},
+                {
+                    label: $t({defaultMessage: "Your bots"}),
+                    key: "your-bots",
+                },
+            ],
+            callback: (_name, key) => {
+                browser_history.update(`#settings/bots/${key}`);
+                this.set_bot_personal_settings_tab(key);
                 $(".bot-settings-section").hide();
                 if (key === "all-bots") {
                     redraw_all_bots_list();
@@ -166,6 +192,21 @@ export class SettingsPanelMenu {
             // destroyed once the settings modal closes.
             this.org_bot_settings_toggler.register_event_handlers();
             this.set_key_handlers(this.org_bot_settings_toggler, $(".org-bot-settings-switcher"));
+        }
+    }
+
+    show_personal_bot_settings_toggler(): void {
+        if ($("#personal-bot-list").find(".tab-switcher").length === 0) {
+            const toggler_html = util.the(this.personal_bot_settings_toggler.get());
+            $("#personal-bot-list .tab-container").html(toggler_html);
+
+            // We need to re-register these handlers since they are
+            // destroyed once the settings modal closes.
+            this.personal_bot_settings_toggler.register_event_handlers();
+            this.set_key_handlers(
+                this.personal_bot_settings_toggler,
+                $(".personal-bot-settings-switcher"),
+            );
         }
     }
 
@@ -232,13 +273,20 @@ export class SettingsPanelMenu {
         this.current_bot_settings_tab = tab;
     }
 
+    set_bot_personal_settings_tab(tab: string | undefined): void {
+        this.current_bot_personal_settings_tab = tab;
+    }
+
     get_settings_tab(section: string): string | undefined {
         if (section === "users") {
             return this.current_user_settings_tab;
         }
 
         if (section === "bots") {
-            return this.current_bot_settings_tab;
+            if (this.base === "organization") {
+                return this.current_bot_settings_tab;
+            }
+            return this.current_bot_personal_settings_tab;
         }
 
         return undefined;
@@ -289,15 +337,23 @@ export class SettingsPanelMenu {
             this.org_user_settings_toggler.goto(settings_tab);
         }
 
-        if (section === "bots" && this.org_bot_settings_toggler !== undefined) {
-            assert(settings_tab !== undefined);
-            this.show_org_bot_settings_toggler();
-            this.org_bot_settings_toggler.goto(settings_tab);
+        if (section === "bots") {
+            if (this.org_bot_settings_toggler !== undefined && this.base === "organization") {
+                assert(settings_tab !== undefined);
+                this.show_org_bot_settings_toggler();
+                this.org_bot_settings_toggler.goto(settings_tab);
+            }
+
+            if (this.personal_bot_settings_toggler !== undefined && this.base === "settings") {
+                assert(settings_tab !== undefined);
+                this.show_personal_bot_settings_toggler();
+                this.personal_bot_settings_toggler.goto(settings_tab);
+            }
         }
 
         $(".settings-section").removeClass("show");
 
-        settings_sections.load_settings_section(section);
+        settings_sections.load_settings_section(section, this.base);
 
         this.get_panel().addClass("show");
 
